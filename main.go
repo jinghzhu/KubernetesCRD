@@ -6,7 +6,7 @@ import (
 	"os"
 
 	logger "github.com/jinghzhu/GoUtils/logger"
-	crd "github.com/jinghzhu/k8scrd/apis/test0/v1"
+	test0v1 "github.com/jinghzhu/k8scrd/apis/test0/v1"
 	"github.com/jinghzhu/k8scrd/client"
 	"github.com/jinghzhu/k8scrd/controller"
 	corev1 "k8s.io/api/core/v1"
@@ -31,7 +31,7 @@ func main() {
 	}
 
 	// Init a CRD.
-	crd, err := crd.CreateCustomResourceDefinition(apiextensionsClientSet)
+	_, err = test0v1.CreateCustomResourceDefinition(apiextensionsClientSet)
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		panic(err)
 	}
@@ -52,22 +52,22 @@ func main() {
 
 	// Create an instance of CRD.
 	instanceName := "test1"
-	testInstance := crd.Test{
+	testInstance := test0v1.Test{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: instanceName,
 		},
-		Spec: crd.TestSpec{
+		Spec: test0v1.TestSpec{
 			Foo: "hello",
 			Bar: true,
 		},
-		Status: crd.TestStatus{
-			State:   crd.StateCreated,
+		Status: test0v1.TestStatus{
+			State:   test0v1.StateCreated,
 			Message: "Created but not processed yet",
 		},
 	}
-	var result crd.Test
+	var result test0v1.Test
 	err = testClient.Post().
-		Resource(crd.TestResourcePlural).
+		Resource(test0v1.TestResourcePlural).
 		Namespace(corev1.NamespaceDefault).
 		Body(testInstance).
 		Do().Into(&result)
@@ -87,8 +87,8 @@ func main() {
 	logger.Info("Porcessed")
 
 	// Get the list of CRs.
-	testList := crd.TestList{}
-	err = testClient.Get().Resource(crd.TestResourcePlural).Do().Into(&testList)
+	testList := test0v1.TestList{}
+	err = testClient.Get().Resource(test0v1.TestResourcePlural).Do().Into(&testList)
 	if err != nil {
 		panic(err)
 	}

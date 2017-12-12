@@ -24,14 +24,14 @@ func CreateCustomResourceDefinition(clientSet apiextensionsclient.Interface) (*a
 			Version: SchemeGroupVersion.Version,
 			Scope:   apiextensionsv1beta1.NamespaceScoped,
 			Names: apiextensionsv1beta1.CustomResourceDefinitionNames{
-				Plural: ResourcePlural,
+				Plural: TestResourcePlural,
 				Kind:   reflect.TypeOf(Test{}).Name(),
 			},
 		},
 	}
 	_, err := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd)
 	if err != nil {
-		logger.ErrorFields("Fail to create CRD: " + err.Error())
+		logger.Error("Fail to create CRD: " + err.Error())
 		return nil, err
 	}
 
@@ -50,7 +50,7 @@ func CreateCustomResourceDefinition(clientSet apiextensionsclient.Interface) (*a
 				}
 			case apiextensionsv1beta1.NamesAccepted:
 				if cond.Status == apiextensionsv1beta1.ConditionFalse {
-					logger.ERROR(fmt.Sprintf("Name conflict while wait for CRD creation: %v, %v", cond.Reason, err))
+					logger.Error(fmt.Sprintf("Name conflict while wait for CRD creation: %v, %v", cond.Reason, err))
 				}
 			}
 		}

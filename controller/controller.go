@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	logger "github.com/jinghzhu/GoUtils/logger"
-	"k8s.io/client-go/tools/cache"
 	crd "github.com/jinghzhu/k8scrd/apis/test0/v1"
-	"k8s.io/apimachinery/pkg/fields"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/client-go/tools/cache"
 )
 
 // Run starts a CRD resource controller.
@@ -16,7 +16,7 @@ func (c *TestController) Run(ctx context.Context) error {
 	logger.Info("Watch CRD objects")
 
 	// Watch CRD objects
-	_, err := c.watchExamples(ctx)
+	_, err := c.watch(ctx)
 	if err != nil {
 		fmt.Printf("Failed to register watch for Example resource: %v\n", err)
 		return err
@@ -42,10 +42,10 @@ func (c *TestController) watch(ctx context.Context) (cache.Controller, error) {
 		0,
 		// CRD event handlers.
 		cache.ResourceEventHandlerFuncs{
-			AddFunc: c.onAdd,
+			AddFunc:    c.onAdd,
 			UpdateFunc: c.onUpdate,
 			DeleteFunc: c.onDelete,
-		}
+		},
 	)
 
 	// go controller.Run(ctx.Done()
@@ -59,7 +59,7 @@ func (c *TestController) onAdd(obj interface{}) {
 	// Use DeepCopy() to make a deep copy of original object and modify this copy
 	// or create a copy manually for better performance.
 	testCopy := test.DeepCopy()
-	testCopy.Status = crd.testStatus{
+	testCopy.Status = crd.TestStatus{
 		State:   crd.StateProcessed,
 		Message: "Successfully processed by controller",
 	}
@@ -75,7 +75,7 @@ func (c *TestController) onAdd(obj interface{}) {
 	if err != nil {
 		logger.Error("ERROR updating status: " + err.Error())
 	} else {
-		logger.Info("UPDATED status: " + testCopy)
+		logger.Info("UPDATED status: " + testCopy.SelfLink)
 	}
 }
 
