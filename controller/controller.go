@@ -26,7 +26,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 
-	crv1 "github.com/jinghzhu/k8scrd/apis/cr/v1"
+	crv1 "github.com/jinghzhu/k8scrd/apis/test/v1"
 )
 
 // Watcher is an example of watching on resource create/update/delete events

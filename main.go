@@ -15,7 +15,7 @@ import (
 	// Uncomment the following line to load the gcp plugin (only required to authenticate against GKE clusters).
 	// _ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
-	crv1 "github.com/jinghzhu/k8scrd/apis/cr/v1"
+	crv1 "github.com/jinghzhu/k8scrd/apis/test/v1"
 	exampleclient "github.com/jinghzhu/k8scrd/client"
 	examplecontroller "github.com/jinghzhu/k8scrd/controller"
 )

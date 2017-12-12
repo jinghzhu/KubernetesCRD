@@ -21,8 +21,8 @@ import (
 	"reflect"
 	"time"
 
+	crv1 "github.com/jinghzhu/k8scrd/apis/test/v1"
 	apiv1 "k8s.io/api/core/v1"
-	crv1 "k8s.io/apiextensions-apiserver/examples/client-go/apis/cr/v1"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
