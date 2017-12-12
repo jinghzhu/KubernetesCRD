@@ -9,7 +9,7 @@ import (
 const (
 	TestResourcePlural string = "tests"
 	// GroupName is the group name used in this package.
-	GroupName      string = "test0.io"
+	GroupName      string = "test.io"
 	TestCRDName    string = TestResourcePlural + "." + GroupName
 	version        string = "v1"
 	StateCreated   string = "Created"

@@ -31,7 +31,7 @@ func main() {
 	}
 
 	// Init a CRD.
-	crd, err = testv1.CreateCustomResourceDefinition(apiextensionsClientSet)
+	crd, err := testv1.CreateCustomResourceDefinition(apiextensionsClientSet)
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		panic(err)
 	}
