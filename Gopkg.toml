@@ -13,7 +13,3 @@
 [[constraint]]
   name = "k8s.io/api"
   revision = "fe29995db37613b9c5b2a647544cf627bfa8d299"
-
-[[constraint]]
-  name = "k8s.io/code-generator"
-  version = "kubernetes-1.8.1"
