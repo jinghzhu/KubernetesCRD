@@ -1,92 +1,120 @@
+/*
+Copyright 2017 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package controller
 
 import (
 	"context"
 	"fmt"
 
-	logger "github.com/jinghzhu/GoUtils/logger"
-	crd "github.com/jinghzhu/k8scrd/apis/test0.io/v1"
-	corev1 "k8s.io/api/core/v1"
+	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
+
+	crv1 "github.com/jinghzhu/k8scrd/apis/cr/v1"
 )
 
-// Run starts a CRD resource controller.
-func (c *TestController) Run(ctx context.Context) error {
-	logger.Info("Watch CRD objects")
+// Watcher is an example of watching on resource create/update/delete events
+type ExampleController struct {
+	ExampleClient *rest.RESTClient
+	ExampleScheme *runtime.Scheme
+}
 
-	// Watch CRD objects
-	_, err := c.watch(ctx)
+// Run starts an Example resource controller
+func (c *ExampleController) Run(ctx context.Context) error {
+	fmt.Print("Watch Example objects\n")
+
+	// Watch Example objects
+	_, err := c.watchExamples(ctx)
 	if err != nil {
 		fmt.Printf("Failed to register watch for Example resource: %v\n", err)
 		return err
 	}
 
-	// <-ctx.Done()
+	<-ctx.Done()
 	return ctx.Err()
 }
 
-func (c *TestController) watch(ctx context.Context) (cache.Controller, error) {
+func (c *ExampleController) watchExamples(ctx context.Context) (cache.Controller, error) {
 	source := cache.NewListWatchFromClient(
-		c.TestClient,
-		crd.TestResourcePlural,
-		corev1.NamespaceAll,
-		fields.Everything(),
-	)
+		c.ExampleClient,
+		crv1.ExampleResourcePlural,
+		apiv1.NamespaceAll,
+		fields.Everything())
 
 	_, controller := cache.NewInformer(
 		source,
-		&crd.Test{},
+
+		// The object type.
+		&crv1.Example{},
+
+		// resyncPeriod
 		// Every resyncPeriod, all resources in the cache will retrigger events.
 		// Set to 0 to disable the resync.
 		0,
-		// CRD event handlers.
+
+		// Your custom resource event handlers.
 		cache.ResourceEventHandlerFuncs{
 			AddFunc:    c.onAdd,
 			UpdateFunc: c.onUpdate,
 			DeleteFunc: c.onDelete,
-		},
-	)
+		})
 
-	// go controller.Run(ctx.Done()
+	go controller.Run(ctx.Done())
 	return controller, nil
 }
 
-func (c *TestController) onAdd(obj interface{}) {
-	test := obj.(*crd.Test)
-	logger.Info("[CONTROLLER] OnAdd " + test.ObjectMeta.SelfLink)
+func (c *ExampleController) onAdd(obj interface{}) {
+	example := obj.(*crv1.Example)
+	fmt.Printf("[CONTROLLER] OnAdd %s\n", example.ObjectMeta.SelfLink)
 
-	// Use DeepCopy() to make a deep copy of original object and modify this copy
-	// or create a copy manually for better performance.
-	testCopy := test.DeepCopy()
-	testCopy.Status = crd.TestStatus{
-		State:   crd.StateProcessed,
+	// NEVER modify objects from the store. It's a read-only, local cache.
+	// You can use DeepCopy() to make a deep copy of original object and modify this copy
+	// Or create a copy manually for better performance
+	exampleCopy := example.DeepCopy()
+	exampleCopy.Status = crv1.ExampleStatus{
+		State:   crv1.ExampleStateProcessed,
 		Message: "Successfully processed by controller",
 	}
 
-	err := c.TestClient.Put().
-		Name(test.ObjectMeta.Name).
-		Namespace(test.ObjectMeta.Namespace).
-		Resource(crd.TestResourcePlural).
-		Body(testCopy).
+	err := c.ExampleClient.Put().
+		Name(example.ObjectMeta.Name).
+		Namespace(example.ObjectMeta.Namespace).
+		Resource(crv1.ExampleResourcePlural).
+		Body(exampleCopy).
 		Do().
 		Error()
 
 	if err != nil {
-		logger.Error("ERROR updating status: " + err.Error())
+		fmt.Printf("ERROR updating status: %v\n", err)
 	} else {
-		logger.Info("UPDATED status: " + testCopy.SelfLink)
+		fmt.Printf("UPDATED status: %#v\n", exampleCopy)
 	}
 }
 
-func (c *TestController) onUpdate(oldObj, newObj interface{}) {
-	old := oldObj.(*crd.Test)
-	new := newObj.(*crd.Test)
-	logger.Info("[CONTROLLER] OnUpdate old: " + old.ObjectMeta.SelfLink)
-	logger.Info("[CONTROLLER] OnUpdate new: " + new.ObjectMeta.SelfLink)
+func (c *ExampleController) onUpdate(oldObj, newObj interface{}) {
+	oldExample := oldObj.(*crv1.Example)
+	newExample := newObj.(*crv1.Example)
+	fmt.Printf("[CONTROLLER] OnUpdate oldObj: %s\n", oldExample.ObjectMeta.SelfLink)
+	fmt.Printf("[CONTROLLER] OnUpdate newObj: %s\n", newExample.ObjectMeta.SelfLink)
 }
 
-func (c *TestController) onDelete(obj interface{}) {
-	test := obj.(*crd.Test)
-	logger.Info("[CONTROLLER] OnDelete " + test.ObjectMeta.SelfLink)
+func (c *ExampleController) onDelete(obj interface{}) {
+	example := obj.(*crv1.Example)
+	fmt.Printf("[CONTROLLER] OnDelete %s\n", example.ObjectMeta.SelfLink)
 }
