@@ -6,7 +6,7 @@ import (
 	"os"
 
 	logger "github.com/jinghzhu/GoUtils/logger"
-	test0v1 "github.com/jinghzhu/k8scrd/apis/test0/v1"
+	test0v1 "github.com/jinghzhu/k8scrd/apis/test0.io/v1"
 	"github.com/jinghzhu/k8scrd/client"
 	"github.com/jinghzhu/k8scrd/controller"
 	corev1 "k8s.io/api/core/v1"
