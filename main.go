@@ -1,20 +1,3 @@
-/*
-Copyright 2017 The Kubernetes Authors.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
-// Note: the example only works with the code within the same release/branch.
 package main
 
 import (
@@ -22,23 +5,23 @@ import (
 	"flag"
 	"fmt"
 
+	apiv1 "k8s.io/api/core/v1"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	apiv1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
 	// Uncomment the following line to load the gcp plugin (only required to authenticate against GKE clusters).
 	// _ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
-	crv1 "github.com/jinghzhu/k8scrd/apis/cr/v1"
+	crv1 "github.com/jinghzhu/k8scrd/apis/test/v1"
 	exampleclient "github.com/jinghzhu/k8scrd/client"
 	examplecontroller "github.com/jinghzhu/k8scrd/controller"
 )
 
 func main() {
-	kubeconfig := flag.String("kubeconfig", "", "Path to a kube config. Only required if out-of-cluster.")
+	kubeconfig := flag.String("kubeconfig", "/Users/jinghuaz/.kube/config", "Path to a kube config. Only required if out-of-cluster.")
 	flag.Parse()
 
 	// Create the client config. Use kubeconfig if given, otherwise assume in-cluster.
@@ -57,7 +40,10 @@ func main() {
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		panic(err)
 	}
-	defer apiextensionsclientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(crd.Name, nil)
+
+	if crd != nil {
+		defer apiextensionsclientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(crd.Name, nil)
+	}
 
 	// make a new config for our extension's API group, using the first config as a baseline
 	exampleClient, exampleScheme, err := exampleclient.NewClient(config)
@@ -110,7 +96,7 @@ func main() {
 	}
 	fmt.Print("PROCESSED\n")
 
-	// Fetch a list of our TPRs
+	// Fetch a list of our CRs
 	exampleList := crv1.ExampleList{}
 	err = exampleClient.Get().Resource(crv1.ExampleResourcePlural).Do().Into(&exampleList)
 	if err != nil {

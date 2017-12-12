@@ -1,0 +1,18 @@
+language: go
+
+os:
+  - linux
+  - osx
+
+# just for demo
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
+
+go:
+  - 1.7
+  - master
+
+install:
+  - go get -d -v ./...
+
+script: go test ./...
