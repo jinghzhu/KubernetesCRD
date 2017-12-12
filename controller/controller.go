@@ -6,7 +6,7 @@ import (
 
 	logger "github.com/jinghzhu/GoUtils/logger"
 	"k8s.io/client-go/tools/cache"
-	"github.com/jinghzhu/k8scrd/crd"
+	crd "github.com/jinghzhu/k8scrd/apis/test0/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	corev1 "k8s.io/api/core/v1"
 )

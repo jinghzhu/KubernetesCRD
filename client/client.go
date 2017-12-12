@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/jinghzhu/GoUtils/logger"
-	"github.com/jinghzhu/k8scrd/crd"
+	crd "github.com/jinghzhu/k8scrd/apis/test0/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
