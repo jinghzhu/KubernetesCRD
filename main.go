@@ -6,9 +6,9 @@ import (
 	"os"
 
 	logger "github.com/jinghzhu/GoUtils/logger"
+	crd "github.com/jinghzhu/k8scrd/apis/test0/v1"
 	"github.com/jinghzhu/k8scrd/client"
 	"github.com/jinghzhu/k8scrd/controller"
-	"github.com/jinghzhu/k8scrd/crd"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
