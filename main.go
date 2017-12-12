@@ -6,9 +6,9 @@ import (
 	"os"
 
 	logger "github.com/jinghzhu/GoUtils/logger"
-	test0v1 "github.com/jinghzhu/k8scrd/apis/test0.io/v1"
+	testv1 "github.com/jinghzhu/k8scrd/apis/test/v1"
 	"github.com/jinghzhu/k8scrd/client"
-	"github.com/jinghzhu/k8scrd/controller"
+	testController "github.com/jinghzhu/k8scrd/controller"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -31,9 +31,12 @@ func main() {
 	}
 
 	// Init a CRD.
-	_, err = test0v1.CreateCustomResourceDefinition(apiextensionsClientSet)
+	crd, err = testv1.CreateCustomResourceDefinition(apiextensionsClientSet)
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		panic(err)
+	}
+	if crd != nil {
+		defer apiextensionsClientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(crd.Name, nil)
 	}
 
 	// Make a new config for extension's API group and use the first one as the baseline.
@@ -43,31 +46,32 @@ func main() {
 	}
 
 	// Start CRD controller.
-	controller := controller.TestController{
+	controller := testController.TestController{
 		TestClient: testClient,
 		TestScheme: testScheme,
 	}
-	ctx := context.Background()
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	defer cancelFunc()
 	go controller.Run(ctx)
 
 	// Create an instance of CRD.
 	instanceName := "test1"
-	testInstance := test0v1.Test{
+	testInstance := testv1.Test{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: instanceName,
 		},
-		Spec: test0v1.TestSpec{
+		Spec: testv1.TestSpec{
 			Foo: "hello",
 			Bar: true,
 		},
-		Status: test0v1.TestStatus{
-			State:   test0v1.StateCreated,
+		Status: testv1.TestStatus{
+			State:   testv1.StateCreated,
 			Message: "Created but not processed yet",
 		},
 	}
-	var result test0v1.Test
+	var result testv1.Test
 	err = testClient.Post().
-		Resource(test0v1.TestResourcePlural).
+		Resource(testv1.TestResourcePlural).
 		Namespace(corev1.NamespaceDefault).
 		Body(testInstance).
 		Do().Into(&result)
@@ -87,8 +91,8 @@ func main() {
 	logger.Info("Porcessed")
 
 	// Get the list of CRs.
-	testList := test0v1.TestList{}
-	err = testClient.Get().Resource(test0v1.TestResourcePlural).Do().Into(&testList)
+	testList := testv1.TestList{}
+	err = testClient.Get().Resource(testv1.TestResourcePlural).Do().Into(&testList)
 	if err != nil {
 		panic(err)
 	}
