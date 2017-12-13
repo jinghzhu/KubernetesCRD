@@ -9,11 +9,12 @@ import (
 const (
 	TestResourcePlural string = "tests"
 	// GroupName is the group name used in this package.
-	GroupName      string = "test.io"
-	TestCRDName    string = TestResourcePlural + "." + GroupName
-	version        string = "v1"
-	StateCreated   string = "Created"
-	StateProcessed string = "Processed"
+	GroupName        string = "test.io"
+	TestCRDName      string = TestResourcePlural + "." + GroupName
+	version          string = "v1"
+	StateCreated     string = "Created"
+	StateProcessed   string = "Processed"
+	DefaultNamespace string = "default"
 )
 
 var (
