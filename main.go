@@ -114,7 +114,7 @@ func main() {
 	fmt.Printf("LIST: %#v\n", testList)
 
 	// As there is a cleanup logic before, here it sleeps for a while for example view.
-	sleepDuration := 5 * time.Minute
+	sleepDuration := 5 * time.Second
 	fmt.Printf("Sleep for %s...\n", sleepDuration.String())
 	time.Sleep(sleepDuration)
 }
