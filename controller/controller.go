@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	logger "github.com/jinghzhu/GoUtils/logger"
 	crd "github.com/jinghzhu/k8scrd/apis/test/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -13,7 +12,7 @@ import (
 
 // Run starts a CRD resource controller.
 func (c *TestController) Run(ctx context.Context) error {
-	logger.Info("Watch CRD objects")
+	fmt.Println("Watch CRD objects...")
 
 	// Watch CRD objects
 	_, err := c.watch(ctx)
@@ -22,7 +21,7 @@ func (c *TestController) Run(ctx context.Context) error {
 		return err
 	}
 
-	// <-ctx.Done()
+	<-ctx.Done()
 	return ctx.Err()
 }
 
@@ -48,13 +47,13 @@ func (c *TestController) watch(ctx context.Context) (cache.Controller, error) {
 		},
 	)
 
-	// go controller.Run(ctx.Done()
+	go controller.Run(ctx.Done())
 	return controller, nil
 }
 
 func (c *TestController) onAdd(obj interface{}) {
 	test := obj.(*crd.Test)
-	logger.Info("[CONTROLLER] OnAdd " + test.ObjectMeta.SelfLink)
+	fmt.Println("[CONTROLLER] OnAdd " + test.ObjectMeta.SelfLink)
 
 	// Use DeepCopy() to make a deep copy of original object and modify this copy
 	// or create a copy manually for better performance.
@@ -73,20 +72,20 @@ func (c *TestController) onAdd(obj interface{}) {
 		Error()
 
 	if err != nil {
-		logger.Error("ERROR updating status: " + err.Error())
+		fmt.Println("ERROR updating status: " + err.Error())
 	} else {
-		logger.Info("UPDATED status: " + testCopy.SelfLink)
+		fmt.Println("UPDATED status: " + testCopy.SelfLink)
 	}
 }
 
 func (c *TestController) onUpdate(oldObj, newObj interface{}) {
 	old := oldObj.(*crd.Test)
 	new := newObj.(*crd.Test)
-	logger.Info("[CONTROLLER] OnUpdate old: " + old.ObjectMeta.SelfLink)
-	logger.Info("[CONTROLLER] OnUpdate new: " + new.ObjectMeta.SelfLink)
+	fmt.Println("[CONTROLLER] OnUpdate old: " + old.ObjectMeta.SelfLink)
+	fmt.Println("[CONTROLLER] OnUpdate new: " + new.ObjectMeta.SelfLink)
 }
 
 func (c *TestController) onDelete(obj interface{}) {
 	test := obj.(*crd.Test)
-	logger.Info("[CONTROLLER] OnDelete " + test.ObjectMeta.SelfLink)
+	fmt.Println("[CONTROLLER] OnDelete " + test.ObjectMeta.SelfLink)
 }

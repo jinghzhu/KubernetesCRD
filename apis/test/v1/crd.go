@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"time"
 
-	logger "github.com/jinghzhu/GoUtils/logger"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,7 +30,7 @@ func CreateCustomResourceDefinition(clientSet apiextensionsclient.Interface) (*a
 	}
 	_, err := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd)
 	if err != nil {
-		logger.Error("Fail to create CRD: " + err.Error())
+		fmt.Println("Fail to create CRD: " + err.Error())
 		return nil, err
 	}
 
@@ -39,7 +38,7 @@ func CreateCustomResourceDefinition(clientSet apiextensionsclient.Interface) (*a
 	err = wait.Poll(500*time.Millisecond, 60*time.Second, func() (bool, error) {
 		crd, err = clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Get(TestCRDName, metav1.GetOptions{})
 		if err != nil {
-			logger.Error("Fail to wait for CRD creation: " + err.Error())
+			fmt.Println("Fail to wait for CRD creation: " + err.Error())
 			return false, err
 		}
 		for _, cond := range crd.Status.Conditions {
@@ -50,7 +49,7 @@ func CreateCustomResourceDefinition(clientSet apiextensionsclient.Interface) (*a
 				}
 			case apiextensionsv1beta1.NamesAccepted:
 				if cond.Status == apiextensionsv1beta1.ConditionFalse {
-					logger.Error(fmt.Sprintf("Name conflict while wait for CRD creation: %v, %v", cond.Reason, err))
+					fmt.Println(fmt.Sprintf("Name conflict while wait for CRD creation: %v, %v", cond.Reason, err))
 				}
 			}
 		}
@@ -59,7 +58,7 @@ func CreateCustomResourceDefinition(clientSet apiextensionsclient.Interface) (*a
 	if err != nil {
 		deleteErr := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(TestCRDName, nil)
 		if deleteErr != nil {
-			logger.Error("Fail to delete CRD: " + deleteErr.Error())
+			fmt.Println("Fail to delete CRD: " + deleteErr.Error())
 			return nil, errors.NewAggregate([]error{err, deleteErr})
 		}
 		return nil, err

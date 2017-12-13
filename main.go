@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	logger "github.com/jinghzhu/GoUtils/logger"
 	testv1 "github.com/jinghzhu/k8scrd/apis/test/v1"
 	"github.com/jinghzhu/k8scrd/client"
 	testController "github.com/jinghzhu/k8scrd/controller"
@@ -56,7 +55,7 @@ func main() {
 
 	// Create an instance of CRD.
 	instanceName := "test1"
-	testInstance := testv1.Test{
+	testInstance := &testv1.Test{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: instanceName,
 		},
@@ -76,9 +75,9 @@ func main() {
 		Body(testInstance).
 		Do().Into(&result)
 	if err == nil {
-		logger.Info(fmt.Sprintf("CREATED: %#v", result))
+		fmt.Printf("CREATED: %#v", result)
 	} else if apierrors.IsAlreadyExists(err) {
-		logger.Info(fmt.Sprintf("ALREADY EXISTS: %#v", result))
+		fmt.Printf("ALREADY EXISTS: %#v", result)
 	} else {
 		panic(err)
 	}
@@ -88,7 +87,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	logger.Info("Porcessed")
+	fmt.Println("Porcessed")
 
 	// Get the list of CRs.
 	testList := testv1.TestList{}
@@ -96,5 +95,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	logger.Info(fmt.Sprintf("LIST: %#v", testList))
+	fmt.Printf("LIST: %#v\n", testList)
 }
