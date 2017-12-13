@@ -383,7 +383,6 @@ func (r *Request) Body(obj interface{}) *Request {
 		r.body = bytes.NewReader(data)
 		r.SetHeader("Content-Type", r.content.ContentType)
 	default:
-		fmt.Println("ERROR!!!!!")
 		r.err = fmt.Errorf("unknown type used for body: %+v", obj)
 	}
 	return r

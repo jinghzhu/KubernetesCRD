@@ -122,12 +122,6 @@
   version = "0.2.4"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/jinghzhu/GoUtils"
-  packages = ["logger","mail","panic"]
-  revision = "dd63e5a87ec62e496bcc2ec6564303a9f115d64e"
-
-[[projects]]
   name = "github.com/json-iterator/go"
   packages = ["."]
   revision = "f7279a603edee96fe7764d3de9c6ff8cf9970994"
@@ -156,12 +150,6 @@
   packages = ["."]
   revision = "5f041e8faa004a95c88a202771f4cc3e991971e6"
   version = "v2.0.1"
-
-[[projects]]
-  name = "github.com/sirupsen/logrus"
-  packages = [".","hooks/syslog"]
-  revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
-  version = "v1.0.4"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -224,7 +212,7 @@
 
 [[projects]]
   name = "k8s.io/client-go"
-  packages = ["discovery","kubernetes/scheme","pkg/version","rest","rest/watch","tools/auth","tools/cache","tools/clientcmd","tools/clientcmd/api","tools/clientcmd/api/latest","tools/clientcmd/api/v1","tools/metrics","tools/pager","transport","util/cert","util/flowcontrol","util/homedir","util/integer"]
+  packages = ["discovery","discovery/fake","kubernetes/scheme","pkg/version","rest","rest/watch","testing","tools/auth","tools/cache","tools/clientcmd","tools/clientcmd/api","tools/clientcmd/api/latest","tools/clientcmd/api/v1","tools/metrics","tools/pager","transport","util/cert","util/flowcontrol","util/homedir","util/integer"]
   revision = "2ae454230481a7cb5544325e12ad7658ecccd19b"
   version = "v5.0.1"
 
@@ -237,6 +225,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d3c3736c732258fcd7684a80cc8211c44b0e3239327ef2b2aa677e244cb12d70"
+  inputs-digest = "68b092897334e21d8bef93691f156ff65f720bb3ee778dc675b207534db0830b"
   solver-name = "gps-cdcl"
   solver-version = 1
