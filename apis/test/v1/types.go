@@ -2,38 +2,53 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-const ExampleResourcePlural = "tests"
+const (
+	TestResourcePlural string = "tests"
+	// GroupName is the group name used in this package.
+	GroupName        string = "test.io"
+	TestCRDName      string = TestResourcePlural + "." + GroupName
+	version          string = "v1"
+	StateCreated     string = "Created"
+	StateProcessed   string = "Processed"
+	DefaultNamespace string = "default"
+)
 
+var (
+	// SchemeGroupVersion is the group version used to register these objects.
+	SchemeGroupVersion = schema.GroupVersion{
+		Group:   GroupName,
+		Version: version,
+	}
+	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
+	AddToScheme   = SchemeBuilder.AddToScheme
+)
+
+// Test is the CRD.
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type Example struct {
+type Test struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
-	Spec              ExampleSpec   `json:"spec"`
-	Status            ExampleStatus `json:"status,omitempty"`
+	Spec              TestSpec   `json:"spec"`
+	Status            TestStatus `json:"status,omitempty"`
 }
 
-type ExampleSpec struct {
+type TestSpec struct {
 	Foo string `json:"foo"`
 	Bar bool   `json:"bar"`
 }
 
-type ExampleStatus struct {
-	State   ExampleState `json:"state,omitempty"`
-	Message string       `json:"message,omitempty"`
+type TestStatus struct {
+	State   string `json:"state,omitempty"`
+	Message string `json:"message,omitempty"`
 }
 
-type ExampleState string
-
-const (
-	ExampleStateCreated   ExampleState = "Created"
-	ExampleStateProcessed ExampleState = "Processed"
-)
-
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type ExampleList struct {
+type TestList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`
-	Items           []Example `json:"items"`
+	Items           []Test `json:"items"`
 }

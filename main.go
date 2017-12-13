@@ -2,112 +2,119 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
+	"os"
+	"time"
 
-	apiv1 "k8s.io/api/core/v1"
+	testv1 "github.com/jinghzhu/k8scrd/apis/test/v1"
+	"github.com/jinghzhu/k8scrd/client"
+	k8scrdcontroller "github.com/jinghzhu/k8scrd/controller"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-
-	// Uncomment the following line to load the gcp plugin (only required to authenticate against GKE clusters).
-	// _ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
-
-	crv1 "github.com/jinghzhu/k8scrd/apis/test/v1"
-	exampleclient "github.com/jinghzhu/k8scrd/client"
-	examplecontroller "github.com/jinghzhu/k8scrd/controller"
 )
 
 func main() {
-	kubeconfig := flag.String("kubeconfig", "/Users/jinghuaz/.kube/config", "Path to a kube config. Only required if out-of-cluster.")
-	flag.Parse()
+	kubeConfigPath := os.Getenv("KUBECONFIG")
 
-	// Create the client config. Use kubeconfig if given, otherwise assume in-cluster.
-	config, err := buildConfig(*kubeconfig)
+	// Use kubeconfig to create client config.
+	clientConfig, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
 	if err != nil {
 		panic(err)
 	}
 
-	apiextensionsclientset, err := apiextensionsclient.NewForConfig(config)
+	apiextensionsClientSet, err := apiextensionsclient.NewForConfig(clientConfig)
 	if err != nil {
 		panic(err)
 	}
 
-	// initialize custom resource using a CustomResourceDefinition if it does not exist
-	crd, err := exampleclient.CreateCustomResourceDefinition(apiextensionsclientset)
+	// Init a CRD.
+	crd, err := testv1.CreateCustomResourceDefinition(apiextensionsClientSet)
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		panic(err)
 	}
+	// Just for cleanup.
+	defer func() {
+		fmt.Println("Exit and clean " + crd.Name)
+		apiextensionsClientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(crd.Name, nil)
+	}()
 
-	if crd != nil {
-		defer apiextensionsclientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(crd.Name, nil)
-	}
-
-	// make a new config for our extension's API group, using the first config as a baseline
-	exampleClient, exampleScheme, err := exampleclient.NewClient(config)
+	// Make a new config for extension's API group and use the first one as the baseline.
+	testClient, testScheme, err := client.NewClient(clientConfig)
 	if err != nil {
 		panic(err)
 	}
 
-	// start a controller on instances of our custom resource
-	controller := examplecontroller.ExampleController{
-		ExampleClient: exampleClient,
-		ExampleScheme: exampleScheme,
+	// Start CRD controller.
+	controller := k8scrdcontroller.TestController{
+		TestClient: testClient,
+		TestScheme: testScheme,
 	}
-
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
 	go controller.Run(ctx)
 
-	// Create an instance of our custom resource
-	example := &crv1.Example{
+	// Create a CRD client interface.
+	crdClient := client.NewCrdClient(testClient, testScheme, testv1.DefaultNamespace)
+	// Create an instance of CRD.
+	instanceName := "test1"
+	testInstance := &testv1.Test{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "example1",
+			Name: instanceName,
 		},
-		Spec: crv1.ExampleSpec{
+		Spec: testv1.TestSpec{
 			Foo: "hello",
 			Bar: true,
 		},
-		Status: crv1.ExampleStatus{
-			State:   crv1.ExampleStateCreated,
-			Message: "Created, not processed yet",
+		Status: testv1.TestStatus{
+			State:   testv1.StateCreated,
+			Message: "Created but not processed yet",
 		},
 	}
-	var result crv1.Example
-	err = exampleClient.Post().
-		Resource(crv1.ExampleResourcePlural).
-		Namespace(apiv1.NamespaceDefault).
-		Body(example).
-		Do().Into(&result)
+	// var result testv1.Test
+	// err = testClient.Post().
+	// 	Resource(testv1.TestResourcePlural).
+	// 	Namespace(corev1.NamespaceDefault).
+	// 	Body(testInstance).
+	// 	Do().Into(&result)
+	// if err == nil {
+	// 	fmt.Printf("CREATED: %#v", result)
+	// } else if apierrors.IsAlreadyExists(err) {
+	// 	fmt.Printf("ALREADY EXISTS: %#v", result)
+	// } else {
+	// 	panic(err)
+	// }
+	result, err := crdClient.Create(testInstance)
 	if err == nil {
-		fmt.Printf("CREATED: %#v\n", result)
+		fmt.Printf("CREATED: %#v", result)
 	} else if apierrors.IsAlreadyExists(err) {
-		fmt.Printf("ALREADY EXISTS: %#v\n", result)
+		fmt.Printf("ALREADY EXISTS: %#v", result)
 	} else {
 		panic(err)
 	}
 
-	// Poll until Example object is handled by controller and gets status updated to "Processed"
-	err = exampleclient.WaitForExampleInstanceProcessed(exampleClient, "example1")
+	// Wait until the CRD object is handled by controller and its status is changed to Processed.
+	err = client.WaitForInstanceProcessed(testClient, instanceName)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Print("PROCESSED\n")
+	fmt.Println("Porcessed")
 
-	// Fetch a list of our CRs
-	exampleList := crv1.ExampleList{}
-	err = exampleClient.Get().Resource(crv1.ExampleResourcePlural).Do().Into(&exampleList)
+	// Get the list of CRs.
+	// testList := testv1.TestList{}
+	// err = testClient.Get().Resource(testv1.TestResourcePlural).Do().Into(&testList)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	testList, err := crdClient.List(metav1.ListOptions{})
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("LIST: %#v\n", exampleList)
-}
+	fmt.Printf("LIST: %#v\n", testList)
 
-func buildConfig(kubeconfig string) (*rest.Config, error) {
-	if kubeconfig != "" {
-		return clientcmd.BuildConfigFromFlags("", kubeconfig)
-	}
-	return rest.InClusterConfig()
+	// As there is a cleanup logic before, here it sleeps for a while for example view.
+	sleepDuration := 5 * time.Minute
+	fmt.Printf("Sleep for %s...\n", sleepDuration.String())
+	time.Sleep(sleepDuration)
 }
