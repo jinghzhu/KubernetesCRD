@@ -104,7 +104,7 @@ func (f *CRDClient) List(opts metav1.ListOptions) (*testv1.TestList, error) {
 	return &result, err
 }
 
-// Create a new List watch for our TPR
+// NewListWatch creates a new List watch for CRD.
 func (f *CRDClient) NewListWatch() *cache.ListWatch {
 	return cache.NewListWatchFromClient(f.restClient, f.plural, f.namespace, fields.Everything())
 }
