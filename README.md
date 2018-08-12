@@ -1,69 +1,74 @@
 # Kubernetes Custom Resource Definition
 
-This repository is an example of how to create/list/update/delete Kubernetes Custom Resource Definition.
+This repository is an example of how to create/list/update/delete Kubernetes [Custom Resource Definition](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/).
 
 
 ## Environment
-1. Go: >= v1.7.0
-2. Kubernetes: v1.8.0 or v1.8.1
+1. Go: >= v1.9.0
+2. Kubernetes: > v1.9.0
 3. Assume you have already a Kubernetes cluster and its kubeconfig file can be reached via system variable `KUBECONFIG`.
 
 
 ## Dependency Package
-The CRD is mainly developed in repository [apiextensions-apiserver](https://github.com/kubernetes/apiextensions-apiserver) which depends on [client-go](https://github.com/kubernetes/client-go), [apimachinery](https://github.com/kubernetes/apimachinery) and [api](https://github.com/kubernetes/api). Please note that it is very time consuming and headache to make all of them work well for Kubernetes v1.7.x (see [kubernetes/apiextensions-apiserver#3](https://github.com/kubernetes/apiextensions-apiserver/issues/3) and [kubernetes/client-go#247](https://github.com/kubernetes/client-go/issues/247)). So, my code is based on Kubernetes v1.8.1:
+The CRD is mainly developed in repository [apiextensions-apiserver](https://github.com/kubernetes/apiextensions-apiserver) which depends on [client-go](https://github.com/kubernetes/client-go), [apimachinery](https://github.com/kubernetes/apimachinery) and [api](https://github.com/kubernetes/api).
 
-* **k8s.io/client-go** with version `v5.0.1`.
-* **k8s.io/apimachinery** with version `kubernetes-1.8.1`.
-* **k8s.io/apiextensions-apiserver** with version `kubernetes-1.8.1`.
-* **k8s.io/api** with commit `fe29995db37613b9c5b2a647544cf627bfa8d299`.
+This code is based on Kubernetes v1.9.6:
+
+* **k8s.io/client-go** with version `kubernetes-1.9.6`.
+* **k8s.io/apimachinery** with version `kubernetes-1.9.6`.
+* **k8s.io/apiextensions-apiserver** with version `kubernetes-1.9.6`.
+* **k8s.io/api** with version `kubernetes-1.9.6`.
 
 
 ## Step-by-step Instruction
 ### Define CRD Object
 We need firstly create the struct of CRD. The CRD object structure has these components:
 * Metadata
+
     Standard Kubernetes properties like name, namespace, labels, etc.
 
 * Spec
+
     CR configuration.
 
     Each instance of our CR has an attached Spec, which should be defined via a `struct{}` to provide data format validation. In practice, this Spec is arbitrary key-value data that specifies the configuration/behavior of the CR.
 
 * Status
+
     Used by the CR controller in response to Spec updates.
 
 ```go
-// apis/test/v1/types.go
+// pkg/apis/example/v1/types.go
 import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-// Test is the CRD.
-type Test struct {
+// Example is the CRD.
+type Example struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
-	Spec              TestSpec   `json:"spec"`
-	Status            TestStatus `json:"status,omitempty"`
+	Spec              ExampleSpec   `json:"spec"`
+	Status            ExampleStatus `json:"status,omitempty"`
 }
 
 // Spec
-type TestSpec struct {
+type ExampleSpec struct {
 	Foo string `json:"foo"`
 	Bar bool   `json:"bar"`
 }
 
 // Status
-type TestStatus struct {
+type ExampleStatus struct {
 	State   string `json:"state,omitempty"`
 	Message string `json:"message,omitempty"`
 }
 ```
 
-From Kubernetes v1.8.0, we need to use its automatically code generated script to create the deep copy methods for CRD object (`pkg\apis\test\v1\zz_generated.deepcopy.go`)
+We need to use its automatically code generated script to create the deep copy methods for CRD object (see `pkg\apis\example\v1\zz_generated.deepcopy.go`)
 
 You can get **code-generator** from [GitHub](https://github.com/kubernetes/code-generator).
 
 In my example, I run following command to generate that file:
 ```bash
-$ ./generate-groups.sh deepcopy github.com/jinghzhu/k8scrd/client github.com/jinghzhu/k8scrd/apis "test:v1"
+$ ./generate-groups.sh deepcopy github.com/jinghzhu/k8scrd/pkg/client github.com/jinghzhu/k8scrd/pkg/apis "example:v1"
 ```
 
 And it may also need to create file [boilerplate.go.txt](https://github.com/kubernetes/kubernetes/blob/release-1.8/hack/boilerplate/boilerplate.go.txt).
@@ -74,14 +79,14 @@ The solution is we also need to deploy the dependency packages in `$GOPATH`. For
 
 
 ### Register CRD
-The CRD name (`TestCRDName`) is the combination of CR plural (`TestResourcePlural`) and CR group(`GroupName`) which can be used for the reference of Kubernetes CLI or API. CR group and version also define API endpoints.
+The CRD name (`ExampleCRDName`) is the combination of CR plural (`ExampleResourcePlural`) and CR group(`GroupName`) which can be used for the reference of Kubernetes CLI or API. CR group and version also define API endpoints.
 
 ```go
-// apis/test/v1/types.go
+// pkg/apis/example/v1/types.go
 const (
-	TestResourcePlural string = "tests"
-	GroupName        string = "test.io"
-	TestCRDName      string = TestResourcePlural + "." + GroupName
+	ExampleResourcePlural string = "examples"
+	GroupName        string = "jinghzhu.io"
+	ExampleCRDName      string = ExampleResourcePlural + "." + GroupName
 	version          string = "v1"
 )
 ```
@@ -89,18 +94,18 @@ const (
 The following method covers the logic to register CRD into Kubernetes:
 
 ```go
-// apis/test/v1/crd.go
+// pkg/apis/example/v1/crd.go
 func CreateCustomResourceDefinition(clientSet apiextensionsclient.Interface) (*apiextensionsv1beta1.CustomResourceDefinition, error) {
 	crd := &apiextensionsv1beta1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: TestCRDName,
+			Name: ExampleCRDName,
 		},
 		Spec: apiextensionsv1beta1.CustomResourceDefinitionSpec{
 			Group:   GroupName,
 			Version: SchemeGroupVersion.Version,
 			Scope:   apiextensionsv1beta1.NamespaceScoped,
 			Names: apiextensionsv1beta1.CustomResourceDefinitionNames{
-				Plural: TestResourcePlural,
+				Plural: ExampleResourcePlural,
 				Kind:   reflect.TypeOf(Test{}).Name(),
 			},
 		},
@@ -113,7 +118,7 @@ func CreateCustomResourceDefinition(clientSet apiextensionsclient.Interface) (*a
 
 	// Wait for CRD creation.
 	err = wait.Poll(500*time.Millisecond, 60*time.Second, func() (bool, error) {
-		crd, err = clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Get(TestCRDName, metav1.GetOptions{})
+		crd, err = clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Get(ExampleCRDName, metav1.GetOptions{})
 		if err != nil {
 			fmt.Println("Fail to wait for CRD creation: " + err.Error())
 			return false, err
@@ -133,7 +138,7 @@ func CreateCustomResourceDefinition(clientSet apiextensionsclient.Interface) (*a
 		return false, err
 	})
 	if err != nil {
-		deleteErr := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(TestCRDName, nil)
+		deleteErr := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ExampleCRDName, nil)
 		if deleteErr != nil {
 			fmt.Println("Fail to delete CRD: " + deleteErr.Error())
 			return nil, errors.NewAggregate([]error{err, deleteErr})
@@ -154,15 +159,15 @@ After creating CRD, we can access via CLI. For easily usage, we hope it can also
 Also, to initalize this client, we need to let it be aware of our CRD schema:
 
 ```go
-// client/client.go
+// pkg/client/client.go
 func NewClient(cfg *rest.Config) (*rest.RESTClient, *runtime.Scheme, error) {
 	scheme := runtime.NewScheme()
-	if err := testv1.AddToScheme(scheme); err != nil {
+	if err := examplev1.AddToScheme(scheme); err != nil {
 		return nil, nil, err
 	}
 
 	config := *cfg
-	config.GroupVersion = &testv1.SchemeGroupVersion
+	config.GroupVersion = &examplev1.SchemeGroupVersion
 	config.APIPath = "/apis"
 	config.ContentType = runtime.ContentTypeJSON
 	config.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: serializer.NewCodecFactory(scheme)}
@@ -183,18 +188,18 @@ Now, I have registered CRD and access it via both CLI and API. With them, users 
 
 It can only watch **Add/Update/Delete** event:
 ```go
-// controller/controller.go
-func (c *TestController) watch(ctx context.Context) (cache.Controller, error) {
+// pkg/controller/controller.go
+func (c *ExampleController) watch(ctx context.Context) (cache.Controller, error) {
 	source := cache.NewListWatchFromClient(
 		c.TestClient,
-		testv1.TestResourcePlural,
+		examplev1.ExampleResourcePlural,
 		corev1.NamespaceAll,
 		fields.Everything(),
 	)
 
 	_, controller := cache.NewInformer(
 		source,
-		&testv1.Test{},
+		&examplev1.Test{},
 		0,
 		// CRD event handlers.
 		cache.ResourceEventHandlerFuncs{  // <--- watch events
@@ -213,7 +218,7 @@ func (c *TestController) watch(ctx context.Context) (cache.Controller, error) {
 ## Main Logic to Use CRD
 I'll go through the main code (`main.go`) to show the main logic of everything set before for us to use CRD.
 
-1. connect to Kubernetes.
+1. Connect to Kubernetes.
 
     ```go
     kubeConfigPath := os.Getenv("KUBECONFIG")
@@ -230,17 +235,17 @@ I'll go through the main code (`main.go`) to show the main logic of everything s
 	}
     ```
 
-2. register the CRD. Please note that it can only be accessed by CLI now as mentioned before.
+2. Register the CRD. Please note that it can only be accessed by CLI now as mentioned before.
 
     ```go
     // Init a CRD.
-	crd, err := testv1.CreateCustomResourceDefinition(apiextensionsClientSet)
+	crd, err := examplev1.CreateCustomResourceDefinition(apiextensionsClientSet)
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		panic(err)
 	}
     ```
 
-3. create the API client to help access the CRD.
+3. Create the API client to help access the CRD.
 
     ```go
     // Make a new config for extension's API group and use the first one as the baseline.
@@ -253,43 +258,43 @@ I'll go through the main code (`main.go`) to show the main logic of everything s
 	crdClient := client.NewCrdClient(testClient, testScheme, testv1.DefaultNamespace)
     ```
 
-4. asynchronous create the CR events controller. You can also do it later.
+4. Asynchronous create the CR events controller. You can also do it later.
 
     ```go
     // Start CRD controller.
-	controller := k8scrdcontroller.TestController{
-		TestClient: testClient,
-		TestScheme: testScheme,
+	controller := k8scrdcontroller.ExampleController{
+		ExampleClient: exampleClient,
+		ExampleScheme: exampleScheme,
 	}
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
     go controller.Run(ctx)
     ```
 
-5. declare a CR object for test.
+5. Declare a CR object for test.
 
     ```go
     // Create an instance of CRD.
-	instanceName := "test1"
-	testInstance := &testv1.Test{
+	instanceName := "example1"
+	exampleInstance := &examplev1.Example{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: instanceName,
 		},
-		Spec: testv1.TestSpec{
+		Spec: examplev1.ExampleSpec{
 			Foo: "hello",
 			Bar: true,
 		},
-		Status: testv1.TestStatus{
-			State:   testv1.StateCreated,
+		Status: examplev1.ExampleStatus{
+			State:   examplev1.StateCreated,
 			Message: "Created but not processed yet",
 		},
     }
     ```
 
-6. use the API client created in step 3 to create new CR.
+6. Use the API client created in step 3 to create new CR.
 
     ```go
-    result, err := crdClient.Create(testInstance)
+    result, err := crdClient.Create(exampleInstance)
 	if err == nil {
 		fmt.Printf("CREATED: %#v", result)
 	} else if apierrors.IsAlreadyExists(err) {
@@ -299,18 +304,18 @@ I'll go through the main code (`main.go`) to show the main logic of everything s
 	}
 
 	// Wait until the CRD object is handled by controller and its status is changed to Processed.
-	err = client.WaitForInstanceProcessed(testClient, instanceName)
+	err = client.WaitForInstanceProcessed(exampleClient, instanceName)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("Porcessed")
 
 	// Get the list of CRs.
-	testList, err := crdClient.List(metav1.ListOptions{})
+	exampleList, err := crdClient.List(metav1.ListOptions{})
 	if err != nil {
 		panic(err)
 	}
-    fmt.Printf("LIST: %#v\n", testList)
+    fmt.Printf("LIST: %#v\n", exampleList)
     ```
 
 
@@ -319,70 +324,71 @@ Now, let's check CRD.
 
 ```bash
 $ kubectl get crd
-NAME            KIND
-tests.test.io   CustomResourceDefinition.v1beta1.apiextensions.k8s.io
+NAME                            AGE
+examples.jinghzhu.io            20m
 
-$ kubectl describe crd tests.test.io
-Name:		tests.test.io
-Namespace:	
-Labels:		<none>
-Annotations:	<none>
-API Version:	apiextensions.k8s.io/v1beta1
-Kind:		CustomResourceDefinition
+$ kubectl describe crd examples.jinghzhu.io
+Name:         examples.jinghzhu.io
+Namespace:    
+Labels:       <none>
+Annotations:  <none>
+API Version:  apiextensions.k8s.io/v1beta1
+Kind:         CustomResourceDefinition
 Metadata:
-  Creation Timestamp:	2017-12-13T13:24:25Z
-  Resource Version:	1818148
-  Self Link:		/apis/apiextensions.k8s.io/v1beta1/customresourcedefinitions/tests.test.io
-  UID:			f092e852-e008-11e7-a465-02000455d788
+  Creation Timestamp:  2018-08-12T07:37:04Z
+  Generation:          1
+  Resource Version:    7499713
+  Self Link:           /apis/apiextensions.k8s.io/v1beta1/customresourcedefinitions/examples.jinghzhu.io
+  UID:                 825b6c34-9e02-11e8-9c65-020053ae2682
 Spec:
-  Group:	test.io
+  Group:  jinghzhu.io
   Names:
-    Kind:	Test
-    List Kind:	TestList
-    Plural:	tests
-    Singular:	test
-  Scope:	Namespaced
-  Version:	v1
+    Kind:       Example
+    List Kind:  ExampleList
+    Plural:     examples
+    Singular:   example
+  Scope:        Namespaced
+  Version:      v1
 Status:
   Accepted Names:
-    Kind:	Test
-    List Kind:	TestList
-    Plural:	tests
-    Singular:	test
+    Kind:       Example
+    List Kind:  ExampleList
+    Plural:     examples
+    Singular:   example
   Conditions:
-    Last Transition Time:	<nil>
-    Message:			no conflicts found
-    Reason:			NoConflicts
-    Status:			True
-    Type:			NamesAccepted
-    Last Transition Time:	2017-12-13T13:24:25Z
-    Message:			the initial names have been accepted
-    Reason:			InitialNamesAccepted
-    Status:			True
-    Type:			Established
-Events:				<none>
+    Last Transition Time:  2018-08-12T07:37:04Z
+    Message:               no conflicts found
+    Reason:                NoConflicts
+    Status:                True
+    Type:                  NamesAccepted
+    Last Transition Time:  2018-08-12T07:37:04Z
+    Message:               the initial names have been accepted
+    Reason:                InitialNamesAccepted
+    Status:                True
+    Type:                  Established
+Events:                    <none>
 ```
 
 ```
 $ kubectl proxy
 Starting to serve on 127.0.0.1:8001
 
-$ curl -i 127.0.0.1:8001/apis/test.io/v1
+$ curl -i 127.0.0.1:8001/apis/jinghzhu.io/v1
 HTTP/1.1 200 OK
-Content-Length: 391
+Content-Length: 404
 Content-Type: application/json
-Date: Wed, 13 Dec 2017 13:27:08 GMT
+Date: Sun, 12 Aug 2018 07:59:24 GMT
 
 {
   "kind": "APIResourceList",
   "apiVersion": "v1",
-  "groupVersion": "test.io/v1",
+  "groupVersion": "jinghzhu.io/v1",
   "resources": [
     {
-      "name": "tests",
-      "singularName": "test",
+      "name": "examples",
+      "singularName": "example",
       "namespaced": true,
-      "kind": "Test",
+      "kind": "Example",
       "verbs": [
         "delete",
         "deletecollection",
