@@ -6,11 +6,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/jinghzhu/k8scrd/client"
+	"github.com/jinghzhu/k8scrd/pkg/client"
 	"k8s.io/client-go/tools/clientcmd"
 
-	crdexamplev1 "github.com/jinghzhu/k8scrd/apis/example/v1"
-	k8scrdcontroller "github.com/jinghzhu/k8scrd/controller"
+	crdexamplev1 "github.com/jinghzhu/k8scrd/pkg/apis/example/v1"
+	k8scrdcontroller "github.com/jinghzhu/k8scrd/pkg/controller"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
