@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	crd "github.com/jinghzhu/k8scrd/apis/example/v1"
+	crd "github.com/jinghzhu/k8scrd/pkg/apis/example/v1"
 	corev1 "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/fields"
