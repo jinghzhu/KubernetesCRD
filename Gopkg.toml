@@ -18,8 +18,9 @@
 # [[override]]
 #  name = "github.com/x/y"
 #  version = "2.4.0"
-
-ignored = ["k8s.io/client-go/pkg/api/v1"]
+#
+# ignored = ["k8s.io/client-go/pkg/api/v1"]
+#
 
 [[constraint]]
   name = "k8s.io/client-go"
