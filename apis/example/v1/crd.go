@@ -16,15 +16,15 @@ import (
 func CreateCustomResourceDefinition(clientSet apiextensionsclient.Interface) (*apiextensionsv1beta1.CustomResourceDefinition, error) {
 	crd := &apiextensionsv1beta1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: TestCRDName,
+			Name: ExampleCRDName,
 		},
 		Spec: apiextensionsv1beta1.CustomResourceDefinitionSpec{
 			Group:   GroupName,
 			Version: SchemeGroupVersion.Version,
 			Scope:   apiextensionsv1beta1.NamespaceScoped,
 			Names: apiextensionsv1beta1.CustomResourceDefinitionNames{
-				Plural: TestResourcePlural,
-				Kind:   reflect.TypeOf(Test{}).Name(),
+				Plural: ExampleResourcePlural,
+				Kind:   reflect.TypeOf(Example{}).Name(),
 			},
 		},
 	}
@@ -36,7 +36,7 @@ func CreateCustomResourceDefinition(clientSet apiextensionsclient.Interface) (*a
 
 	// Wait for CRD creation.
 	err = wait.Poll(500*time.Millisecond, 60*time.Second, func() (bool, error) {
-		crd, err = clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Get(TestCRDName, metav1.GetOptions{})
+		crd, err = clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Get(ExampleCRDName, metav1.GetOptions{})
 		if err != nil {
 			fmt.Println("Fail to wait for CRD creation: " + err.Error())
 			return false, err
@@ -56,7 +56,7 @@ func CreateCustomResourceDefinition(clientSet apiextensionsclient.Interface) (*a
 		return false, err
 	})
 	if err != nil {
-		deleteErr := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(TestCRDName, nil)
+		deleteErr := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ExampleCRDName, nil)
 		if deleteErr != nil {
 			fmt.Println("Fail to delete CRD: " + deleteErr.Error())
 			return nil, errors.NewAggregate([]error{err, deleteErr})
@@ -69,8 +69,8 @@ func CreateCustomResourceDefinition(clientSet apiextensionsclient.Interface) (*a
 // addKnownTypes adds the set of types defined in this package to the supplied scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
-		&Test{},
-		&TestList{},
+		&Example{},
+		&ExampleList{},
 	)
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 

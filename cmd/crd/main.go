@@ -6,13 +6,14 @@ import (
 	"os"
 	"time"
 
-	testv1 "github.com/jinghzhu/k8scrd/apis/test/v1"
 	"github.com/jinghzhu/k8scrd/client"
+	"k8s.io/client-go/tools/clientcmd"
+
+	crdexamplev1 "github.com/jinghzhu/k8scrd/apis/example/v1"
 	k8scrdcontroller "github.com/jinghzhu/k8scrd/controller"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 func main() {
@@ -30,7 +31,7 @@ func main() {
 	}
 
 	// Init a CRD.
-	crd, err := testv1.CreateCustomResourceDefinition(apiextensionsClientSet)
+	crd, err := crdexamplev1.CreateCustomResourceDefinition(apiextensionsClientSet)
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		panic(err)
 	}
@@ -41,38 +42,38 @@ func main() {
 	}()
 
 	// Make a new config for extension's API group and use the first one as the baseline.
-	testClient, testScheme, err := client.NewClient(clientConfig)
+	exampleClient, exampleScheme, err := client.NewClient(clientConfig)
 	if err != nil {
 		panic(err)
 	}
 
 	// Start CRD controller.
-	controller := k8scrdcontroller.TestController{
-		TestClient: testClient,
-		TestScheme: testScheme,
+	controller := k8scrdcontroller.ExampleController{
+		ExampleClient: exampleClient,
+		ExampleScheme: exampleScheme,
 	}
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
 	go controller.Run(ctx)
 
 	// Create a CRD client interface.
-	crdClient := client.NewCrdClient(testClient, testScheme, testv1.DefaultNamespace)
+	crdClient := client.NewCrdClient(exampleClient, exampleScheme, crdexamplev1.DefaultNamespace)
 	// Create an instance of CRD.
-	instanceName := "test1"
-	testInstance := &testv1.Test{
+	instanceName := "example1"
+	exampleInstance := &crdexamplev1.Example{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: instanceName,
 		},
-		Spec: testv1.TestSpec{
+		Spec: crdexamplev1.ExampleSpec{
 			Foo: "hello",
 			Bar: true,
 		},
-		Status: testv1.TestStatus{
-			State:   testv1.StateCreated,
+		Status: crdexamplev1.ExampleStatus{
+			State:   crdexamplev1.StateCreated,
 			Message: "Created but not processed yet",
 		},
 	}
-	result, err := crdClient.Create(testInstance)
+	result, err := crdClient.Create(exampleInstance)
 	if err == nil {
 		fmt.Printf("CREATED: %#v", result)
 	} else if apierrors.IsAlreadyExists(err) {
@@ -82,18 +83,18 @@ func main() {
 	}
 
 	// Wait until the CRD object is handled by controller and its status is changed to Processed.
-	err = client.WaitForInstanceProcessed(testClient, instanceName)
+	err = client.WaitForInstanceProcessed(exampleClient, instanceName)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("Porcessed")
 
 	// Get the list of CRs.
-	testList, err := crdClient.List(metav1.ListOptions{})
+	exampleList, err := crdClient.List(metav1.ListOptions{})
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("LIST: %#v\n", testList)
+	fmt.Printf("LIST: %#v\n", exampleList)
 
 	// As there is a cleanup logic before, here it sleeps for a while for example view.
 	sleepDuration := 5 * time.Second
