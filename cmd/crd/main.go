@@ -72,19 +72,6 @@ func main() {
 			Message: "Created but not processed yet",
 		},
 	}
-	// var result testv1.Test
-	// err = testClient.Post().
-	// 	Resource(testv1.TestResourcePlural).
-	// 	Namespace(corev1.NamespaceDefault).
-	// 	Body(testInstance).
-	// 	Do().Into(&result)
-	// if err == nil {
-	// 	fmt.Printf("CREATED: %#v", result)
-	// } else if apierrors.IsAlreadyExists(err) {
-	// 	fmt.Printf("ALREADY EXISTS: %#v", result)
-	// } else {
-	// 	panic(err)
-	// }
 	result, err := crdClient.Create(testInstance)
 	if err == nil {
 		fmt.Printf("CREATED: %#v", result)
@@ -102,11 +89,6 @@ func main() {
 	fmt.Println("Porcessed")
 
 	// Get the list of CRs.
-	// testList := testv1.TestList{}
-	// err = testClient.Get().Resource(testv1.TestResourcePlural).Do().Into(&testList)
-	// if err != nil {
-	// 	panic(err)
-	// }
 	testList, err := crdClient.List(metav1.ListOptions{})
 	if err != nil {
 		panic(err)
