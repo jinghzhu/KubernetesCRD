@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	crdexamplev1 "github.com/jinghzhu/k8scrd/pkg/apis/example/v1"
+	crdexamplev1 "github.com/jinghzhu/KubernetesCRD/pkg/apis/example/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
