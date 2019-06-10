@@ -1,16 +1,14 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
-	"time"
 
-	"github.com/jinghzhu/k8scrd/pkg/client"
+	"github.com/jinghzhu/KubernetesCRD/pkg/types"
 	"k8s.io/client-go/tools/clientcmd"
 
-	crdexamplev1 "github.com/jinghzhu/k8scrd/pkg/apis/example/v1"
-	k8scrdcontroller "github.com/jinghzhu/k8scrd/pkg/controller"
+	crdjinghzhuv1 "github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu/v1"
+	jinghzhuv1client "github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu/v1/client"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,60 +28,43 @@ func main() {
 		panic(err)
 	}
 
-	// Init a CRD.
-	crd, err := crdexamplev1.CreateCustomResourceDefinition(apiextensionsClientSet)
-	if err != nil && !apierrors.IsAlreadyExists(err) {
+	// Init a CRD kind.
+	if _, err = crdjinghzhuv1.CreateCustomResourceDefinition("crd-ns", apiextensionsClientSet); err != nil {
 		panic(err)
 	}
-	// Just for cleanup.
-	defer func() {
-		fmt.Println("Exit and clean " + crd.Name)
-		apiextensionsClientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(crd.Name, nil)
-	}()
 
-	// Make a new config for extension's API group and use the first one as the baseline.
-	exampleClient, exampleScheme, err := client.NewClient(clientConfig)
+	// Create a CRD client interface for Jinghzhu v1.
+	crdClient, err := jinghzhuv1client.NewClient(kubeConfigPath, types.DefaultCRDNamespace)
 	if err != nil {
 		panic(err)
 	}
 
-	// Start CRD controller.
-	controller := k8scrdcontroller.ExampleController{
-		ExampleClient: exampleClient,
-		ExampleScheme: exampleScheme,
-	}
-	ctx, cancelFunc := context.WithCancel(context.Background())
-	defer cancelFunc()
-	go controller.Run(ctx)
-
-	// Create a CRD client interface.
-	crdClient := client.NewCrdClient(exampleClient, exampleScheme, crdexamplev1.DefaultNamespace)
 	// Create an instance of CRD.
-	instanceName := "example1"
-	exampleInstance := &crdexamplev1.Example{
+	instanceName := "jinghzhu-example1"
+	exampleInstance := &crdjinghzhuv1.Jinghzhu{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: instanceName,
 		},
-		Spec: crdexamplev1.ExampleSpec{
+		Spec: crdjinghzhuv1.JinghzhuSpec{
 			Foo: "hello",
 			Bar: true,
 		},
-		Status: crdexamplev1.ExampleStatus{
-			State:   crdexamplev1.StateCreated,
+		Status: crdjinghzhuv1.JinghzhuStatus{
+			State:   crdjinghzhuv1.StatePending,
 			Message: "Created but not processed yet",
 		},
 	}
 	result, err := crdClient.Create(exampleInstance)
 	if err == nil {
-		fmt.Printf("CREATED: %#v", result)
+		fmt.Printf("CREATED: %#v\n", result)
 	} else if apierrors.IsAlreadyExists(err) {
-		fmt.Printf("ALREADY EXISTS: %#v", result)
+		fmt.Printf("ALREADY EXISTS: %#\n", result)
 	} else {
 		panic(err)
 	}
 
 	// Wait until the CRD object is handled by controller and its status is changed to Processed.
-	err = client.WaitForInstanceProcessed(exampleClient, instanceName)
+	err = crdClient.WaitForInstanceProcessed(instanceName)
 	if err != nil {
 		panic(err)
 	}
@@ -95,9 +76,4 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("LIST: %#v\n", exampleList)
-
-	// As there is a cleanup logic before, here it sleeps for a while for example view.
-	sleepDuration := 5 * time.Second
-	fmt.Printf("Sleep for %s...\n", sleepDuration.String())
-	time.Sleep(sleepDuration)
 }
