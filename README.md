@@ -3,13 +3,15 @@
 This repository is an example of how to create/list/update/delete Kubernetes [Custom Resource Definition](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/).
 
 
-## Environment
+
+# Environment
 1. Go: >= v1.9.0
 2. Kubernetes: > v1.9.0
 3. Assume you have already a Kubernetes cluster and its kubeconfig file can be reached via system variable `KUBECONFIG`.
 
 
-## Dependency Package
+
+# Dependency Package
 The CRD is mainly developed in repository [apiextensions-apiserver](https://github.com/kubernetes/apiextensions-apiserver) which depends on [client-go](https://github.com/kubernetes/client-go), [apimachinery](https://github.com/kubernetes/apimachinery) and [api](https://github.com/kubernetes/api).
 
 This code is based on Kubernetes v1.9.6:
@@ -20,203 +22,133 @@ This code is based on Kubernetes v1.9.6:
 * **k8s.io/api** with version `kubernetes-1.9.6`.
 
 
-## Step-by-step Instruction
-### Define CRD Object
+
+# Step-by-step Instructions
+## Define CRD Object
 We need firstly create the struct of CRD. The CRD object structure has these components:
-* Metadata
+
+* `Metadata`
 
     Standard Kubernetes properties like name, namespace, labels, etc.
 
-* Spec
+* `Spec`
 
     CR configuration.
 
     Each instance of our CR has an attached Spec, which should be defined via a `struct{}` to provide data format validation. In practice, this Spec is arbitrary key-value data that specifies the configuration/behavior of the CR.
 
-* Status
+* `Status`
 
     Used by the CR controller in response to Spec updates.
 
 ```go
-// pkg/apis/example/v1/types.go
-import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+// pkg/crd/jinghzhu/v1/types.go
 
-// Example is the CRD.
-type Example struct {
-	metav1.TypeMeta   `json:",inline"`
+// Jinghzhu is the CRD. Use this command to generate deepcopy for it:
+type Jinghzhu struct {
+	metav1.TypeMeta `json:",inline"`
+	// Standard object's metadata.
 	metav1.ObjectMeta `json:"metadata"`
-	Spec              ExampleSpec   `json:"spec"`
-	Status            ExampleStatus `json:"status,omitempty"`
+	// Specification of the desired behavior of Jinghzhu.
+	Spec JinghzhuSpec `json:"spec"`
+	// Observed status of Jinghzhu.
+	Status JinghzhuStatus `json:"status"`
 }
 
-// Spec
-type ExampleSpec struct {
+// JinghzhuSpec is a desired state description of Jinghzhu.
+type JinghzhuSpec struct {
 	Foo string `json:"foo"`
 	Bar bool   `json:"bar"`
 }
 
-// Status
-type ExampleStatus struct {
-	State   string `json:"state,omitempty"`
-	Message string `json:"message,omitempty"`
+// JinghzhuStatus describes the lifecycle status of Jinghzhu.
+type JinghzhuStatus struct {
+	State   string `json:"state"`
+	Message string `json:"message"`
 }
 ```
 
-We need to use its automatically code generated script to create the deep copy methods for CRD object (see `pkg\apis\example\v1\zz_generated.deepcopy.go`)
+We need to leverage the automatically code generated script to create the deep copy methods for CRD object. The resutl can be found at:
+* `pkg/crd/jinghzhu/v1/zz_generated.deepcopy.go`
+* `pkg/crd/jinghzhu/v1/apis`
 
 You can get **code-generator** from [GitHub](https://github.com/kubernetes/code-generator).
 
 In my example, I run following command to generate that file:
 ```bash
-$ ./generate-groups.sh deepcopy github.com/jinghzhu/k8scrd/pkg/client github.com/jinghzhu/k8scrd/pkg/apis "example:v1"
+$ ./k8s.io/code-generator/generate-groups.sh all github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu/v1/apis github.com/jinghzhu/KubernetesCRD/pkg/crd "jinghzhu:v1"
 ```
 
-And it may also need to create file [boilerplate.go.txt](https://github.com/kubernetes/kubernetes/blob/release-1.8/hack/boilerplate/boilerplate.go.txt).
+> It requires you already have the code-generator at `$GOPATH/src/k8s.io`.
 
-Please note that as I use dep to manage dependency packages, we can't directly run the script, generate-groups. It will throw the error that it can't find necessary vendor packages.
+It may also need to create file [boilerplate.go.txt](https://github.com/kubernetes/kubernetes/blob/release-1.8/hack/boilerplate/boilerplate.go.txt). Please note that the code-generator requires annotation to work as expected. If you carefully read my code, you can find the annotations at:
 
-The solution is we also need to deploy the dependency packages in `$GOPATH`. For more details, please view the [kubernetes/code-generator#21](https://github.com/kubernetes/code-generator/issues/21).
-
-
-### Register CRD
-The CRD name (`ExampleCRDName`) is the combination of CR plural (`ExampleResourcePlural`) and CR group(`GroupName`) which can be used for the reference of Kubernetes CLI or API. CR group and version also define API endpoints.
+* `pkg/crd/jinghzhu/v1/types.go`:
 
 ```go
-// pkg/apis/example/v1/types.go
+// +genclient
+// +genclient:noStatus
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +resource:path=jinghzhu
+
+...
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+...
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +resource:path=jinghzhu
+```
+
+* `pkg/crd/jinghzhu/v1/doc.go`:
+
+```go
+// +k8s:deepcopy-gen=package,register
+// +k8s:defaulter-gen=TypeMeta
+// +k8s:openapi-gen=true
+
+// Package v1 is the v1 version of the API.
+// +groupName=jinghzhu.com
+```
+
+For more details about annotations for code-generator, please read Kubernets documents or Google it.
+
+> If you use dep to manage dependency packages, you may not directly run the script, generate-groups. It will throw the error that it can't find necessary vendor packages.
+> 
+> The solution is to deploy the dependency packages in `$GOPATH`. For more details, please view the [kubernetes/code-generator#21](https://github.com/kubernetes/code-generator/issues/21).
+
+
+## Register CRD
+The CRD name (`CRDName string = Plural + "." + GroupName`) is the combination of CR plural (`Plural string = "jinghzhus"`) and CR group(`GroupName string = "jinghzhu.com"`) which can be used for the reference of Kubernetes CLI or API. CR group and version also define API endpoints.
+
+`pkg/crd/jinghzhu/v1/register.go`:
+```go
 const (
-	ExampleResourcePlural string = "examples"
-	GroupName        string = "jinghzhu.io"
-	ExampleCRDName      string = ExampleResourcePlural + "." + GroupName
-	version          string = "v1"
+	// GroupName is the group name used in this package.
+	GroupName string = "jinghzhu.com"
+	Kind      string = "Jinghzhu"
+	// GroupVersion is the version.
+	GroupVersion string = "v1"
+	// Plural is the Plural for Jinghzhu.
+	Plural string = "jinghzhus"
+	// Singular is the singular for Jinghzhu.
+	Singular string = "jinghzhu"
+	// CRDName is the CRD name for Jinghzhu.
+	CRDName string = Plural + "." + GroupName
 )
 ```
 
-The following method covers the logic to register CRD into Kubernetes:
+The method, `CreateCustomResourceDefinition` at `pkg/crd/jinghzhu/v1/crd.go`, covers the logic to register CRD into Kubernetes. Please note that Kubernetes doesn't immediately register CRD. So, it is better to add logic to wait for the creation like shown in the code.
 
-```go
-// pkg/apis/example/v1/crd.go
-func CreateCustomResourceDefinition(clientSet apiextensionsclient.Interface) (*apiextensionsv1beta1.CustomResourceDefinition, error) {
-	crd := &apiextensionsv1beta1.CustomResourceDefinition{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: ExampleCRDName,
-		},
-		Spec: apiextensionsv1beta1.CustomResourceDefinitionSpec{
-			Group:   GroupName,
-			Version: SchemeGroupVersion.Version,
-			Scope:   apiextensionsv1beta1.NamespaceScoped,
-			Names: apiextensionsv1beta1.CustomResourceDefinitionNames{
-				Plural: ExampleResourcePlural,
-				Kind:   reflect.TypeOf(Test{}).Name(),
-			},
-		},
-	}
-	_, err := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd)
-	if err != nil {
-		fmt.Println("Fail to create CRD: " + err.Error())
-		return nil, err
-	}
 
-	// Wait for CRD creation.
-	err = wait.Poll(500*time.Millisecond, 60*time.Second, func() (bool, error) {
-		crd, err = clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Get(ExampleCRDName, metav1.GetOptions{})
-		if err != nil {
-			fmt.Println("Fail to wait for CRD creation: " + err.Error())
-			return false, err
-		}
-		for _, cond := range crd.Status.Conditions {
-			switch cond.Type {
-			case apiextensionsv1beta1.Established:
-				if cond.Status == apiextensionsv1beta1.ConditionTrue {
-					return true, err
-				}
-			case apiextensionsv1beta1.NamesAccepted:
-				if cond.Status == apiextensionsv1beta1.ConditionFalse {
-					fmt.Println(fmt.Sprintf("Name conflict while wait for CRD creation: %v, %v", cond.Reason, err))
-				}
-			}
-		}
-		return false, err
-	})
-	if err != nil {
-		deleteErr := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ExampleCRDName, nil)
-		if deleteErr != nil {
-			fmt.Println("Fail to delete CRD: " + deleteErr.Error())
-			return nil, errors.NewAggregate([]error{err, deleteErr})
-		}
-		return nil, err
-	}
-	return crd, nil
-}
-```
-
-Please note that Kubernetes doesn't immediately register CRD. So, it is better to add logic to wait for the creation like shown in the code.
+## CRD Client
+After creating CRD, we can access via CLI. For easily usage, we hope it can also be accessed via API. So I develop some methods to wrapper some codes for CRD **Create**, **Update**, **Delete**, **Get**, and **List**. You can view them at `pkg/crd/jinghzhu/v1/client/client.go`.
 
 
 
-### CRD Client
-After creating CRD, we can access via CLI. For easily usage, we hope it can also be accessed via API. So I develop some methods to wrapper some codes for CRD **Create**, **Update**, **Delete**, **Get**, and **List**. You can view them at `client/client.go`.
-
-Also, to initalize this client, we need to let it be aware of our CRD schema:
-
-```go
-// pkg/client/client.go
-func NewClient(cfg *rest.Config) (*rest.RESTClient, *runtime.Scheme, error) {
-	scheme := runtime.NewScheme()
-	if err := examplev1.AddToScheme(scheme); err != nil {
-		return nil, nil, err
-	}
-
-	config := *cfg
-	config.GroupVersion = &examplev1.SchemeGroupVersion
-	config.APIPath = "/apis"
-	config.ContentType = runtime.ContentTypeJSON
-	config.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: serializer.NewCodecFactory(scheme)}
-
-	client, err := rest.RESTClientFor(&config)
-	if err != nil {
-		fmt.Println("Fail to generate REST client: " + err.Error())
-		return nil, nil, err
-	}
-
-	return client, scheme, nil
-}
-```
-
-
-### CRD Controller
-Now, I have registered CRD and access it via both CLI and API. With them, users can write some yaml files to add CR instances. But if I want to leverage CRD to help us monitor and perform actions on the CR events, I introduce a controller (`controller/controller.go`) to do it.
-
-It can only watch **Add/Update/Delete** event:
-```go
-// pkg/controller/controller.go
-func (c *ExampleController) watch(ctx context.Context) (cache.Controller, error) {
-	source := cache.NewListWatchFromClient(
-		c.TestClient,
-		examplev1.ExampleResourcePlural,
-		corev1.NamespaceAll,
-		fields.Everything(),
-	)
-
-	_, controller := cache.NewInformer(
-		source,
-		&examplev1.Test{},
-		0,
-		// CRD event handlers.
-		cache.ResourceEventHandlerFuncs{  // <--- watch events
-			AddFunc:    c.onAdd,
-			UpdateFunc: c.onUpdate,
-			DeleteFunc: c.onDelete,
-		},
-	)
-
-	go controller.Run(ctx.Done())
-	return controller, nil
-}
-```
-
-
-## Main Logic to Use CRD
-I'll go through the main code (`main.go`) to show the main logic of everything set before for us to use CRD.
+# Main Logic to Use CRD
+Here, I'll go through the main code (`main.go`) to show the main logic of everything set before for us to use CRD.
 
 1. Connect to Kubernetes.
 
@@ -238,9 +170,8 @@ I'll go through the main code (`main.go`) to show the main logic of everything s
 2. Register the CRD. Please note that it can only be accessed by CLI now as mentioned before.
 
     ```go
-    // Init a CRD.
-	crd, err := examplev1.CreateCustomResourceDefinition(apiextensionsClientSet)
-	if err != nil && !apierrors.IsAlreadyExists(err) {
+    // Init a CRD kind.
+	if _, err = crdjinghzhuv1.CreateCustomResourceDefinition("crd-ns", apiextensionsClientSet); err != nil {
 		panic(err)
 	}
     ```
@@ -248,63 +179,46 @@ I'll go through the main code (`main.go`) to show the main logic of everything s
 3. Create the API client to help access the CRD.
 
     ```go
-    // Make a new config for extension's API group and use the first one as the baseline.
-	testClient, testScheme, err := client.NewClient(clientConfig)
+    // Create a CRD client interface for Jinghzhu v1.
+	crdClient, err := jinghzhuv1client.NewClient(kubeConfigPath, types.DefaultCRDNamespace)
 	if err != nil {
 		panic(err)
-    }
-
-    // Create a CRD client interface.
-	crdClient := client.NewCrdClient(testClient, testScheme, testv1.DefaultNamespace)
-    ```
-
-4. Asynchronous create the CR events controller. You can also do it later.
-
-    ```go
-    // Start CRD controller.
-	controller := k8scrdcontroller.ExampleController{
-		ExampleClient: exampleClient,
-		ExampleScheme: exampleScheme,
 	}
-	ctx, cancelFunc := context.WithCancel(context.Background())
-	defer cancelFunc()
-    go controller.Run(ctx)
     ```
 
-5. Declare a CR object for test.
+4. Declare a CR object for test.
 
     ```go
-    // Create an instance of CRD.
-	instanceName := "example1"
-	exampleInstance := &examplev1.Example{
+    instanceName := "jinghzhu-example1"
+	exampleInstance := &crdjinghzhuv1.Jinghzhu{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: instanceName,
 		},
-		Spec: examplev1.ExampleSpec{
+		Spec: crdjinghzhuv1.JinghzhuSpec{
 			Foo: "hello",
 			Bar: true,
 		},
-		Status: examplev1.ExampleStatus{
-			State:   examplev1.StateCreated,
+		Status: crdjinghzhuv1.JinghzhuStatus{
+			State:   crdjinghzhuv1.StatePending,
 			Message: "Created but not processed yet",
 		},
-    }
+	}
     ```
 
-6. Use the API client created in step 3 to create new CR.
+5. Use the API client created in step 3 to create new CR.
 
     ```go
     result, err := crdClient.Create(exampleInstance)
 	if err == nil {
-		fmt.Printf("CREATED: %#v", result)
+		fmt.Printf("CREATED: %#v\n", result)
 	} else if apierrors.IsAlreadyExists(err) {
-		fmt.Printf("ALREADY EXISTS: %#v", result)
+		fmt.Printf("ALREADY EXISTS: %#\n", result)
 	} else {
 		panic(err)
 	}
 
 	// Wait until the CRD object is handled by controller and its status is changed to Processed.
-	err = client.WaitForInstanceProcessed(exampleClient, instanceName)
+	err = crdClient.WaitForInstanceProcessed(instanceName)
 	if err != nil {
 		panic(err)
 	}
@@ -315,8 +229,22 @@ I'll go through the main code (`main.go`) to show the main logic of everything s
 	if err != nil {
 		panic(err)
 	}
-    fmt.Printf("LIST: %#v\n", exampleList)
+	fmt.Printf("LIST: %#v\n", exampleList)
     ```
+
+If everything goes well, you should see logs like:
+
+```bash
+$ KUBECONFIG=~/.kube/config go run cmd/crd/main.go
+CRD Jinghzhu is created
+
+CREATED: &v1.Jinghzhu{TypeMeta:v1.TypeMeta{Kind:"", APIVersion:""}, ObjectMeta:v1.ObjectMeta{Name:"jinghzhu-example1", GenerateName:"", Namespace:"crd-ns", SelfLink:"/apis/jinghzhu.com/v1/namespaces/crd-ns/jinghzhus/jinghzhu-example1", UID:"2095f6e4-8b76-11e9-92f8-02005ee2a828", ResourceVersion:"40895595", Generation:0, CreationTimestamp:v1.Time{Time:time.Time{wall:0x0, ext:63695764308, loc:(*time.Location)(0x23468a0)}}, DeletionTimestamp:(*v1.Time)(nil), DeletionGracePeriodSeconds:(*int64)(nil), Labels:map[string]string(nil), Annotations:map[string]string(nil), OwnerReferences:[]v1.OwnerReference(nil), Initializers:(*v1.Initializers)(nil), Finalizers:[]string(nil), ClusterName:""}, Spec:v1.JinghzhuSpec{Foo:"hello", Bar:true}, Status:v1.JinghzhuStatus{State:"Pending", Message:"Created but not processed yet"}}
+
+Porcessed
+
+LIST: &v1.JinghzhuList{TypeMeta:v1.TypeMeta{Kind:"", APIVersion:""}, ListMeta:v1.ListMeta{SelfLink:"/apis/jinghzhu.com/v1/namespaces/crd-ns/jinghzhus", ResourceVersion:"40895598", Continue:""}, Items:[]v1.Jinghzhu{v1.Jinghzhu{TypeMeta:v1.TypeMeta{Kind:"Jinghzhu", APIVersion:"jinghzhu.com/v1"}, ObjectMeta:v1.ObjectMeta{Name:"jinghzhu-example1", GenerateName:"", Namespace:"crd-ns", SelfLink:"/apis/jinghzhu.com/v1/namespaces/crd-ns/jinghzhus/jinghzhu-example1", UID:"2095f6e4-8b76-11e9-92f8-02005ee2a828", ResourceVersion:"40895595", Generation:0, CreationTimestamp:v1.Time{Time:time.Time{wall:0x0, ext:63695764308, loc:(*time.Location)(0x23468a0)}}, DeletionTimestamp:(*v1.Time)(nil), DeletionGracePeriodSeconds:(*int64)(nil), Labels:map[string]string(nil), Annotations:map[string]string(nil), OwnerReferences:[]v1.OwnerReference(nil), Initializers:(*v1.Initializers)(nil), Finalizers:[]string(nil), ClusterName:""}, Spec:v1.JinghzhuSpec{Foo:"hello", Bar:true}, Status:v1.JinghzhuStatus{State:"Pending", Message:"Created but not processed yet"}}}}
+```
+
 
 
 ## Result
@@ -325,43 +253,45 @@ Now, let's check CRD.
 ```bash
 $ kubectl get crd
 NAME                            AGE
-examples.jinghzhu.io            20m
+jinghzhus.jinghzhu.com          21m
+```
 
-$ kubectl describe crd examples.jinghzhu.io
-Name:         examples.jinghzhu.io
-Namespace:    
+```bash
+$ kubectl describe crd jinghzhus.jinghzhu.com
+Name:         jinghzhus.jinghzhu.com
+Namespace:
 Labels:       <none>
 Annotations:  <none>
 API Version:  apiextensions.k8s.io/v1beta1
 Kind:         CustomResourceDefinition
 Metadata:
-  Creation Timestamp:  2018-08-12T07:37:04Z
+  Creation Timestamp:  2019-06-10T11:51:13Z
   Generation:          1
-  Resource Version:    7499713
-  Self Link:           /apis/apiextensions.k8s.io/v1beta1/customresourcedefinitions/examples.jinghzhu.io
-  UID:                 825b6c34-9e02-11e8-9c65-020053ae2682
+  Resource Version:    40895519
+  Self Link:           /apis/apiextensions.k8s.io/v1beta1/customresourcedefinitions/jinghzhus.jinghzhu.com
+  UID:                 0bdc06fa-8b76-11e9-92f8-02005ee2a828
 Spec:
-  Group:  jinghzhu.io
+  Group:  jinghzhu.com
   Names:
-    Kind:       Example
-    List Kind:  ExampleList
-    Plural:     examples
-    Singular:   example
+    Kind:       Jinghzhu
+    List Kind:  JinghzhuList
+    Plural:     jinghzhus
+    Singular:   jinghzhu
   Scope:        Namespaced
   Version:      v1
 Status:
   Accepted Names:
-    Kind:       Example
-    List Kind:  ExampleList
-    Plural:     examples
-    Singular:   example
+    Kind:       Jinghzhu
+    List Kind:  JinghzhuList
+    Plural:     jinghzhus
+    Singular:   jinghzhu
   Conditions:
-    Last Transition Time:  2018-08-12T07:37:04Z
+    Last Transition Time:  2019-06-10T11:51:13Z
     Message:               no conflicts found
     Reason:                NoConflicts
     Status:                True
     Type:                  NamesAccepted
-    Last Transition Time:  2018-08-12T07:37:04Z
+    Last Transition Time:  2019-06-10T11:51:13Z
     Message:               the initial names have been accepted
     Reason:                InitialNamesAccepted
     Status:                True
@@ -369,38 +299,57 @@ Status:
 Events:                    <none>
 ```
 
-```
+```bash
 $ kubectl proxy
 Starting to serve on 127.0.0.1:8001
 
-$ curl -i 127.0.0.1:8001/apis/jinghzhu.io/v1
+$ curl -i 127.0.0.1:8001/apis/jinghzhu.com
 HTTP/1.1 200 OK
-Content-Length: 404
+Content-Length: 294
 Content-Type: application/json
-Date: Sun, 12 Aug 2018 07:59:24 GMT
+Date: Mon, 10 Jun 2019 12:13:34 GMT
 
 {
-  "kind": "APIResourceList",
+  "kind": "APIGroup",
   "apiVersion": "v1",
-  "groupVersion": "jinghzhu.io/v1",
-  "resources": [
+  "name": "jinghzhu.com",
+  "versions": [
     {
-      "name": "examples",
-      "singularName": "example",
-      "namespaced": true,
-      "kind": "Example",
-      "verbs": [
-        "delete",
-        "deletecollection",
-        "get",
-        "list",
-        "patch",
-        "create",
-        "update",
-        "watch"
-      ]
+      "groupVersion": "jinghzhu.com/v1",
+      "version": "v1"
     }
-  ]
+  ],
+  "preferredVersion": {
+    "groupVersion": "jinghzhu.com/v1",
+    "version": "v1"
+  },
+  "serverAddressByClientCIDRs": null
 }
 ```
 
+```bash
+$ kubectl -n crd-ns get jinghzhus
+NAME                AGE
+jinghzhu-example1   22m
+
+$ kubectl -n crd-ns describe jinghzhus jinghzhu-example1
+Name:         jinghzhu-example1
+Namespace:    crd-ns
+Labels:       <none>
+Annotations:  <none>
+API Version:  jinghzhu.com/v1
+Kind:         Jinghzhu
+Metadata:
+  Cluster Name:
+  Creation Timestamp:  2019-06-10T11:51:48Z
+  Resource Version:    40895595
+  Self Link:           /apis/jinghzhu.com/v1/namespaces/crd-ns/jinghzhus/jinghzhu-example1
+  UID:                 2095f6e4-8b76-11e9-92f8-02005ee2a828
+Spec:
+  Bar:  true
+  Foo:  hello
+Status:
+  Message:  Created but not processed yet
+  State:    Pending
+Events:     <none>
+```
