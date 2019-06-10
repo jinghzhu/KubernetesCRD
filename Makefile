@@ -7,12 +7,12 @@ ALL_ARCH = amd64 dawrin
 GO_VERSION ?= 1.9
 GO_IMAGE ?= golang
 GO_BIN ?= $(GO_HOME)/bin/$(ARCH)
-GULEL_CMDS = github.com/jinghzhu/KubernetesCRD/cmd/launcher github.com/jinghzhu/KubernetesCRD/cmd/crd
+CMDS = github.com/jinghzhu/KubernetesCRD/cmd/crd
 
 all: build
 
 build:
-	for command in $(GULEL_CMDS) ; do \
+	for command in $(CMDS) ; do \
 		echo "building $$command......."; \
 		docker run --rm -u $$(id -u):$$(id -g) -v $$(pwd):$(GO_HOME) \
 			-it $(GO_IMAGE):$(GO_VERSION) \

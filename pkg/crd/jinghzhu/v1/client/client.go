@@ -94,7 +94,7 @@ func (c *Client) PatchStatus(name string, jinghzhuStatus *jinghzhuv1.JinghzhuSta
 	return c.PatchJSONType(name, ops)
 }
 
-// PatchSpecAndStatus performs patch for both spec and status field of Launch.
+// PatchSpecAndStatus performs patch for both spec and status field of Jinghzhu.
 func (c *Client) PatchSpecAndStatus(
 	name string,
 	jinghzhuSpec *jinghzhuv1.JinghzhuSpec,

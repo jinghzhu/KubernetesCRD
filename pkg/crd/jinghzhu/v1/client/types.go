@@ -17,9 +17,9 @@ const (
 )
 
 var (
-	onceDefaultLaunchV1Client sync.Once
-	defaultClient             *Client
-	validPatchResources       map[string]string
+	onceDefaultJinghzhuV1Client sync.Once
+	defaultClient               *Client
+	validPatchResources         map[string]string
 )
 
 // Client is an API client to help perform CRUD for CRD instances.
@@ -31,7 +31,7 @@ type Client struct {
 
 // PatchJSONTypeOps describes the operations for PATCH defined in RFC6902. https://tools.ietf.org/html/rfc6902
 // The supported operations are: add, remove, replace, move, copy and test.
-// When Gulel news a Launch instance, we'll set defatule value for all fields. So, when you want to patch a Launch,
+// When we news a Jinghzhu instance, we'll set defatule value for all fields. So, when you want to patch a Jinghzhu,
 // DO NOT use remove. Please use replace, even if you want to keey that field "empty".
 // Example:
 // 	things := make([]IntThingSpec, 2)
@@ -91,7 +91,7 @@ func NewClient(kubeconfigPath, namespace string) (*Client, error) {
 // GetDefaultClient returns an API client interface for CRD Jinghzhu v1. It assumes the kubeconfig
 // is available at default path and the target CRD namespace is the default namespace.
 func GetDefaultClient() *Client {
-	onceDefaultLaunchV1Client.Do(func() {
+	onceDefaultJinghzhuV1Client.Do(func() {
 		clientset, err := CreateJinghzhuClientset(types.DefaultKubeConfigPath)
 		if err != nil {
 			panic("Fail to init default CRD API client for Jinghuazhu v1: " + err.Error())
