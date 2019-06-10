@@ -18,8 +18,8 @@ package fake
 
 import (
 	clientset "github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu/v1/apis/clientset/versioned"
-	jinghzhuv1 "github.com/jinghzhu/kubernetescrd/pkg/crd/jinghzhu/v1/apis/clientset/versioned/typed/jinghzhu/v1"
-	fakejinghzhuv1 "github.com/jinghzhu/kubernetescrd/pkg/crd/jinghzhu/v1/apis/clientset/versioned/typed/jinghzhu/v1/fake"
+	jinghzhuv1 "github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu/v1/apis/clientset/versioned/typed/jinghzhu/v1"
+	fakejinghzhuv1 "github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu/v1/apis/clientset/versioned/typed/jinghzhu/v1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"

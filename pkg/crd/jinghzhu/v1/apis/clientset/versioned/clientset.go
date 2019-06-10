@@ -18,7 +18,7 @@ package versioned
 
 import (
 	glog "github.com/golang/glog"
-	jinghzhuv1 "github.com/jinghzhu/kubernetescrd/pkg/crd/jinghzhu/v1/apis/clientset/versioned/typed/jinghzhu/v1"
+	jinghzhuv1 "github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu/v1/apis/clientset/versioned/typed/jinghzhu/v1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

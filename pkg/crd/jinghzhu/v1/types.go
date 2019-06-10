@@ -1,7 +1,6 @@
 package v1
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -40,14 +39,8 @@ type Jinghzhu struct {
 
 // JinghzhuSpec is a desired state description of Jinghzhu.
 type JinghzhuSpec struct {
-	// PodStatus is the Pod status.
-	PodStatus corev1.PodStatus `json:"podstatus"`
-	// PodSpec contains the Pod info.
-	PodSpec corev1.PodSpec `json:"podspec"`
-	// PodName is the Pod name.
-	PodName string `json:"podname"`
-	// PodNamespace is the namespace where Pod is running.
-	PodNamespace string `json:"podnamespace"`
+	Foo string `json:"foo"`
+	Bar bool   `json:"bar"`
 }
 
 // JinghzhuStatus describes the lifecycle status of Jinghzhu.

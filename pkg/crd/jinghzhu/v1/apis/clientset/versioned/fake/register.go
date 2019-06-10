@@ -17,7 +17,7 @@ limitations under the License.
 package fake
 
 import (
-	jinghzhuv1 "github.com/jinghzhu/kubernetescrd/pkg/crd/jinghzhu/v1"
+	jinghzhuv1 "github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

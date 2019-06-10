@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"sync"
 
 	jinghzhuv1 "github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu/v1"
@@ -57,12 +58,12 @@ func (c *Client) GetPlural() string {
 }
 
 // CreateJinghzhuClientset returns the clientset for CRD Jinghzhu v1 in singleton way.
-func CreateJinghzhuClientset(kubeconfigPath string) (*launchv1apisclientset.Clientset, error) {
+func CreateJinghzhuClientset(kubeconfigPath string) (*jinghzhuv1apisclientset.Clientset, error) {
 	restConfig, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 	if err != nil {
 		return nil, err
 	}
-	clientset, err := launchv1apisclientset.NewForConfig(restConfig)
+	clientset, err := jinghzhuv1apisclientset.NewForConfig(restConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +82,7 @@ func NewClient(kubeconfigPath, namespace string) (*Client, error) {
 	c := &Client{
 		clientset: clientset,
 		namespace: namespace,
-		plural: jinghzhuv1.Plural,
+		plural:    jinghzhuv1.Plural,
 	}
 
 	return c, nil
