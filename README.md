@@ -1,6 +1,8 @@
 # Kubernetes Custom Resource Definition
 
-This repository is an example of how to create/list/update/delete Kubernetes [Custom Resource Definition](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/).
+This repository is an example of how to create/list/update/delete Kubernetes [Custom Resource Definition](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/). If you also want to learn how to develop your own [Operator](https://coreos.com/operators/), please visit:
+* [CRD Operator](https://github.com/jinghzhu/KubernetesCRDOperator)
+* [Pod Operator](https://github.com/jinghzhu/KubernetesPodOperator)
 
 
 
