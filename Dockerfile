@@ -1,0 +1,4 @@
+FROM ubuntu:20.10
+
+ARG BIN
+COPY $BIN /
