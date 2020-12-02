@@ -33,7 +33,7 @@ func CreateCustomResourceDefinition(namespace string, clientSet apiextensionscli
 			},
 		},
 	}
-	_, err := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd)
+	_, err := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Create(ctx, crd, metav1.CreateOptions{})
 	if err == nil {
 		fmt.Println("CRD Jinghzhu is created")
 	} else if apierrors.IsAlreadyExists(err) {
@@ -46,7 +46,7 @@ func CreateCustomResourceDefinition(namespace string, clientSet apiextensionscli
 
 	// Wait for CRD creation.
 	err = wait.Poll(5*time.Second, 60*time.Second, func() (bool, error) {
-		crd, err = clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Get(CRDName, metav1.GetOptions{})
+		crd, err = clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Get(ctx, CRDName, metav1.GetOptions{})
 		if err != nil {
 			fmt.Printf("Fail to wait for CRD Jinghzhu creation: %+v\n", err)
 
@@ -71,7 +71,7 @@ func CreateCustomResourceDefinition(namespace string, clientSet apiextensionscli
 	// If there is an error, delete the object to keep it clean.
 	if err != nil {
 		fmt.Println("Try to cleanup")
-		deleteErr := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(CRDName, nil)
+		deleteErr := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ctx, CRDName, metav1.DeleteOptions{})
 		if deleteErr != nil {
 			fmt.Printf("Fail to delete CRD Jinghzhu: %+v\n", deleteErr)
 

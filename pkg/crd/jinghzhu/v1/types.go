@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"context"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -16,6 +18,10 @@ const (
 	// StateFailed means that all containers in the Pod have terminated, and at least one container has
 	// terminated in a failure (exited with a non-zero exit code or was stopped by the system).
 	StateFailed string = "Failed"
+)
+
+var (
+	ctx = context.Background()
 )
 
 // +genclient
