@@ -26,17 +26,27 @@ func (c *Client) WaitForInstanceProcessed(ctx context.Context, name string) erro
 	})
 }
 
-// Create post an instance of CRD into Kubernetes.
+// Create post an instance of CRD into Kubernetes with given create options.
 func (c *Client) Create(ctx context.Context, obj *jinghzhuv1.Jinghzhu, opts metav1.CreateOptions) (*jinghzhuv1.Jinghzhu, error) {
 	return c.clientset.JinghzhuV1().Jinghzhus(c.namespace).Create(ctx, obj, opts)
 }
 
-// Update puts new instance of CRD to replace the old one.
+// CreateDefault post an instance of CRD into Kubernetes without create options.
+func (c *Client) CreateDefault(ctx context.Context, obj *jinghzhuv1.Jinghzhu) (*jinghzhuv1.Jinghzhu, error) {
+	return c.clientset.JinghzhuV1().Jinghzhus(c.namespace).Create(ctx, obj, metav1.CreateOptions{})
+}
+
+// Update puts new instance of CRD to replace the old one by given update options.
 func (c *Client) Update(ctx context.Context, obj *jinghzhuv1.Jinghzhu, opts metav1.UpdateOptions) (*jinghzhuv1.Jinghzhu, error) {
 	return c.clientset.JinghzhuV1().Jinghzhus(c.namespace).Update(ctx, obj, opts)
 }
 
-// UpdateSpecAndStatus updates the spec and status filed of Jinghzhu v1.
+// UpdateDefault puts new instance of CRD to replace the old one without update options.
+func (c *Client) UpdateDefault(ctx context.Context, obj *jinghzhuv1.Jinghzhu) (*jinghzhuv1.Jinghzhu, error) {
+	return c.clientset.JinghzhuV1().Jinghzhus(c.namespace).Update(ctx, obj, metav1.UpdateOptions{})
+}
+
+// UpdateSpecAndStatus updates the spec and status filed of CRD.
 // If only want to update some sub-resource, please use Patch instead.
 func (c *Client) UpdateSpecAndStatus(ctx context.Context, name string, jinghzhuSpec *jinghzhuv1.JinghzhuSpec, jinghzhuStatus *jinghzhuv1.JinghzhuStatus) (*jinghzhuv1.Jinghzhu, error) {
 	instance, err := c.Get(ctx, name, metav1.GetOptions{})
@@ -118,17 +128,27 @@ func (c *Client) Delete(ctx context.Context, name string, opts metav1.DeleteOpti
 	return c.clientset.JinghzhuV1().Jinghzhus(c.namespace).Delete(ctx, name, opts)
 }
 
+// DeleteDefault removes the CRD instance without delete options.
+func (c *Client) DeleteDefault(ctx context.Context, name string) error {
+	return c.clientset.JinghzhuV1().Jinghzhus(c.namespace).Delete(ctx, name, metav1.DeleteOptions{})
+}
+
 // Get returns a pointer to the CRD instance.
 func (c *Client) Get(ctx context.Context, name string, opts metav1.GetOptions) (*jinghzhuv1.Jinghzhu, error) {
 	return c.clientset.JinghzhuV1().Jinghzhus(c.namespace).Get(ctx, name, opts)
 }
 
-// GetWithoutOps retrieves the Jinghzhu instance without any GetOptions.
-func (c *Client) GetWithoutOps(ctx context.Context, name string) (*jinghzhuv1.Jinghzhu, error) {
+// GetDefault retrieves the crd instance without get options.
+func (c *Client) GetDefault(ctx context.Context, name string) (*jinghzhuv1.Jinghzhu, error) {
 	return c.clientset.JinghzhuV1().Jinghzhus(c.namespace).Get(ctx, name, metav1.GetOptions{})
 }
 
 // List returns a list of CRD instances by given list options.
 func (c *Client) List(ctx context.Context, opts metav1.ListOptions) (*jinghzhuv1.JinghzhuList, error) {
 	return c.clientset.JinghzhuV1().Jinghzhus(c.namespace).List(ctx, opts)
+}
+
+// ListDefaultDefault returns a list of CRD instances without list options.
+func (c *Client) ListDefaultDefault(ctx context.Context) (*jinghzhuv1.JinghzhuList, error) {
+	return c.clientset.JinghzhuV1().Jinghzhus(c.namespace).List(ctx, metav1.ListOptions{})
 }
