@@ -46,9 +46,9 @@ type Jinghzhu struct {
 // JinghzhuSpec is a desired state description of Jinghzhu.
 type JinghzhuSpec struct {
 	// Desired is the desired Pod number.
-	Desired string `json:"desired"`
+	Desired int `json:"desired"`
 	// Current is the number of Pod currently running.
-	Current bool `json:"current"`
+	Current int `json:"current"`
 	// PodList is the name list of current Pods.
 	PodList []string `json:"podList"`
 }
