@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -15,6 +16,7 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
 	kubeConfigPath := os.Getenv("KUBECONFIG")
 
 	// Use kubeconfig to create client config.
@@ -46,15 +48,16 @@ func main() {
 			Name: instanceName,
 		},
 		Spec: crdjinghzhuv1.JinghzhuSpec{
-			Foo: "hello",
-			Bar: true,
+			Desired: 1,
+			Current: 0,
+			PodList: make([]string, 0),
 		},
 		Status: crdjinghzhuv1.JinghzhuStatus{
 			State:   crdjinghzhuv1.StatePending,
 			Message: "Created but not processed yet",
 		},
 	}
-	result, err := crdClient.Create(exampleInstance)
+	result, err := crdClient.CreateDefault(ctx, exampleInstance)
 	if err == nil {
 		fmt.Printf("CREATED: %#v\n", result)
 	} else if apierrors.IsAlreadyExists(err) {
@@ -64,14 +67,14 @@ func main() {
 	}
 
 	// Wait until the CRD object is handled by controller and its status is changed to Processed.
-	err = crdClient.WaitForInstanceProcessed(instanceName)
+	err = crdClient.WaitForInstanceProcessed(ctx, instanceName)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("Porcessed")
 
 	// Get the list of CRs.
-	exampleList, err := crdClient.List(metav1.ListOptions{})
+	exampleList, err := crdClient.List(ctx, metav1.ListOptions{})
 	if err != nil {
 		panic(err)
 	}
