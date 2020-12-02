@@ -8,9 +8,7 @@ import (
 )
 
 const (
-	// GroupName is the group name used in this package.
-	GroupName string = "jinghzhu.com"
-	Kind      string = "Jinghzhu"
+	Kind string = "Jinghzhu"
 	// GroupVersion is the version.
 	GroupVersion string = "v1"
 	// Plural is the Plural for Jinghzhu.
@@ -30,11 +28,6 @@ var (
 	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
 	AddToScheme   = SchemeBuilder.AddToScheme
 )
-
-// Kind takes an unqualified kind and returns back a Group qualified GroupKind
-func Kind(kind string) schema.GroupKind {
-	return SchemeGroupVersion.WithKind(Kind).GroupKind()
-}
 
 // Resource takes an unqualified resource and returns a Group qualified GroupResource
 func Resource(resource string) schema.GroupResource {
