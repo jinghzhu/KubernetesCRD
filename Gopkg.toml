@@ -23,17 +23,17 @@
 #
 
 [[constraint]]
+  version = "kubernetes-1.18.12"
   name = "k8s.io/client-go"
-  version = "kubernetes-1.9.6"
 
 [[constraint]]
-  version = "kubernetes-1.9.6"
+  version = "kubernetes-1.18.12"
   name = "k8s.io/apimachinery"
 
 [[constraint]]
-  version = "kubernetes-1.9.6"
+  version = "kubernetes-1.18.12"
   name = "k8s.io/apiextensions-apiserver"
 
 [[constraint]]
-  version = "kubernetes-1.9.6"
+  version = "kubernetes-1.18.12"
   name = "k8s.io/api"
