@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"time"
 
+	crdjinghzhu "github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apiextensionsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -23,7 +24,7 @@ func CreateCustomResourceDefinition(namespace string, clientSet apiextensionscli
 			Namespace: namespace,
 		},
 		Spec: apiextensionsv1beta1.CustomResourceDefinitionSpec{
-			Group:   GroupName,
+			Group:   crdjinghzhu.GroupName,
 			Version: SchemeGroupVersion.Version,
 			Scope:   apiextensionsv1beta1.NamespaceScoped,
 			Names: apiextensionsv1beta1.CustomResourceDefinitionNames{

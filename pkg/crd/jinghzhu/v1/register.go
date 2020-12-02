@@ -1,6 +1,7 @@
 package v1
 
 import (
+	crdjinghzhu "github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -16,13 +17,13 @@ const (
 	// Singular is the singular for Jinghzhu.
 	Singular string = "jinghzhu"
 	// CRDName is the CRD name for Jinghzhu.
-	CRDName string = Plural + "." + GroupName
+	CRDName string = Plural + "." + crdjinghzhu.GroupName
 )
 
 var (
 	// SchemeGroupVersion is the group version used to register these objects.
 	SchemeGroupVersion = schema.GroupVersion{
-		Group:   GroupName,
+		Group:   crdjinghzhu.GroupName,
 		Version: GroupVersion,
 	}
 	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
