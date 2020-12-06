@@ -1,7 +1,7 @@
 package v1alpha
 
 import (
-	crdjinghzhu "github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu"
+	crdexample "github.com/jinghzhu/KubernetesCRD/pkg/crd/example"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -9,21 +9,21 @@ import (
 )
 
 const (
-	Kind string = "Jinghzhu"
+	Kind string = "Example"
 	// GroupVersion is the version.
 	GroupVersion string = "v1alpha"
-	// Plural is the Plural for Jinghzhu.
-	Plural string = "jinghzhus"
-	// Singular is the singular for Jinghzhu.
-	Singular string = "jinghzhu"
-	// CRDName is the CRD name for Jinghzhu.
-	CRDName string = Plural + "." + crdjinghzhu.GroupName
+	// Plural is the Plural for Example.
+	Plural string = "examples"
+	// Singular is the singular for Example.
+	Singular string = "example"
+	// CRDName is the CRD name for Example.
+	CRDName string = Plural + "." + crdexample.GroupName
 )
 
 var (
 	// SchemeGroupVersion is the group version used to register these objects.
 	SchemeGroupVersion = schema.GroupVersion{
-		Group:   crdjinghzhu.GroupName,
+		Group:   crdexample.GroupName,
 		Version: GroupVersion,
 	}
 	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
@@ -38,8 +38,8 @@ func Resource(resource string) schema.GroupResource {
 // addKnownTypes adds the set of types defined in this package to the supplied scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
-		&Jinghzhu{},
-		&JinghzhuList{},
+		&Example{},
+		&ExampleList{},
 	)
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 

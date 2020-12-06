@@ -3,5 +3,5 @@
 // +k8s:openapi-gen=true
 
 // Package v1alpha is the v1alpha version of the API.
-// +groupName=jinghzhu.com
+// +groupName=example.com
 package v1alpha
