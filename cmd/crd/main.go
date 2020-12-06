@@ -53,7 +53,7 @@ func main() {
 			PodList: make([]string, 0),
 		},
 		Status: crdjinghzhuv1.JinghzhuStatus{
-			State:   crdjinghzhuv1.StatePending,
+			State:   types.StatePending,
 			Message: "Created but not processed yet",
 		},
 	}

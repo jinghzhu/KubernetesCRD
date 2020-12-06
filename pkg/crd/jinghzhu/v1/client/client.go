@@ -10,6 +10,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apimachinerytypes "k8s.io/apimachinery/pkg/types"
 
+	"github.com/jinghzhu/KubernetesCRD/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
@@ -17,7 +18,7 @@ import (
 func (c *Client) WaitForInstanceProcessed(ctx context.Context, name string) error {
 	return wait.Poll(time.Second, 3*time.Second, func() (bool, error) {
 		instance, err := c.Get(ctx, name, metav1.GetOptions{})
-		if err == nil && instance.Status.State == jinghzhuv1.StatePending {
+		if err == nil && instance.Status.State == types.StatePending {
 			return true, nil
 		}
 		fmt.Printf("Fail to wait for CRD instance processed: %+v\n", err)
