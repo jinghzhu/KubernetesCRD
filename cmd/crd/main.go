@@ -1,10 +1,9 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"os"
 
+	"github.com/jinghzhu/KubernetesCRD/pkg/config"
 	"github.com/jinghzhu/KubernetesCRD/pkg/types"
 	"k8s.io/client-go/tools/clientcmd"
 
@@ -16,11 +15,12 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
-	kubeConfigPath := os.Getenv("KUBECONFIG")
+	ctx := types.GetCtx()
+	cfg := config.GetConfig()
+	kubeconfigPath := cfg.GetKubeconfig()
 
 	// Use kubeconfig to create client config.
-	clientConfig, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
+	clientConfig, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 	if err != nil {
 		panic(err)
 	}
@@ -31,12 +31,12 @@ func main() {
 	}
 
 	// Init a CRD kind.
-	if _, err = crdjinghzhuv1.CreateCustomResourceDefinition(types.DefaultCRDNamespace, apiextensionsClientSet); err != nil {
+	if _, err = crdjinghzhuv1.CreateCustomResourceDefinition(cfg.GetCRDNamespace(), apiextensionsClientSet); err != nil {
 		panic(err)
 	}
 
 	// Create a CRD client interface for Jinghzhu v1.
-	crdClient, err := jinghzhuv1client.NewClient(kubeConfigPath, types.DefaultCRDNamespace)
+	crdClient, err := jinghzhuv1client.NewClient(ctx, kubeconfigPath, cfg.GetCRDNamespace())
 	if err != nil {
 		panic(err)
 	}
@@ -57,7 +57,7 @@ func main() {
 			Message: "Created but not processed yet",
 		},
 	}
-	result, err := crdClient.CreateDefault(ctx, exampleInstance)
+	result, err := crdClient.CreateDefault(exampleInstance)
 	if err == nil {
 		fmt.Printf("CREATED: %#v\n", result)
 	} else if apierrors.IsAlreadyExists(err) {
@@ -67,14 +67,14 @@ func main() {
 	}
 
 	// Wait until the CRD object is handled by controller and its status is changed to Processed.
-	err = crdClient.WaitForInstanceProcessed(ctx, instanceName)
+	err = crdClient.WaitForInstanceProcessed(instanceName)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("Porcessed")
 
 	// Get the list of CRs.
-	exampleList, err := crdClient.List(ctx, metav1.ListOptions{})
+	exampleList, err := crdClient.List(metav1.ListOptions{})
 	if err != nil {
 		panic(err)
 	}

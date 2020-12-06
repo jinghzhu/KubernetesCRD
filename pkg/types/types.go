@@ -1,11 +1,8 @@
 package types
 
-const (
-	// DefaultCRDNamespace is the default namespace where we create CRD instances.
-	DefaultCRDNamespace string = "crd"
-	// DefaultKubeConfigPath is the default local path of kubeconfig file.
-	DefaultKubeConfigPath string = "~/.kube/config"
+import "context"
 
+const (
 	// StatePending means CRD instance is created; Pod info has been updated into CRD instance;
 	// Pod has been accepted by the system, but one or more of the containers has not been started.
 	StatePending string = "Pending"
@@ -18,3 +15,16 @@ const (
 	// terminated in a failure (exited with a non-zero exit code or was stopped by the system).
 	StateFailed string = "Failed"
 )
+
+var (
+	ctx context.Context
+)
+
+func init() {
+	ctx = context.Background()
+}
+
+// GetCtx returns global default context.
+func GetCtx() context.Context {
+	return ctx
+}
