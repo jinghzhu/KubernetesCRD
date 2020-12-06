@@ -11,6 +11,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/jinghzhu/KubernetesCRD/pkg/types"
 	"k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
@@ -33,6 +34,7 @@ func CreateCustomResourceDefinition(namespace string, clientSet apiextensionscli
 			},
 		},
 	}
+	ctx := types.GetCtx()
 	_, err := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Create(ctx, crd, metav1.CreateOptions{})
 	if err == nil {
 		fmt.Println("CRD Jinghzhu is created")
