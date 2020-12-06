@@ -31,7 +31,7 @@ func main() {
 	}
 
 	// Init a CRD kind.
-	if _, err = crdjinghzhuv1.CreateCustomResourceDefinition("crd-ns", apiextensionsClientSet); err != nil {
+	if _, err = crdjinghzhuv1.CreateCustomResourceDefinition(types.DefaultCRDNamespace, apiextensionsClientSet); err != nil {
 		panic(err)
 	}
 
