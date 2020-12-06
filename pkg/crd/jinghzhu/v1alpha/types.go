@@ -1,31 +1,15 @@
-package v1
+package v1alpha
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const (
-	// StatePending means CRD instance is created; Pod info has been updated into CRD instance;
-	// Pod has been accepted by the system, but one or more of the containers has not been started.
-	StatePending string = "Pending"
-	// StateRunning means Pod has been bound to a node and all of the containers have been started.
-	StateRunning string = "Running"
-	// StateSucceeded means that all containers in the Pod have voluntarily terminated with a container
-	// exit code of 0, and the system is not going to restart any of these containers.
-	StateSucceeded string = "Succeeded"
-	// StateFailed means that all containers in the Pod have terminated, and at least one container has
-	// terminated in a failure (exited with a non-zero exit code or was stopped by the system).
-	StateFailed string = "Failed"
-)
-
+// Jinghzhu is the CRD. Use this command to generate deepcopy for it:
+// ./k8s.io/code-generator/generate-groups.sh all github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu/v1alpha/apis github.com/jinghzhu/KubernetesCRD/pkg/crd "jinghzhu:v1alpha"
+// For more details of code-generator, please visit https://github.com/kubernetes/code-generator
 // +genclient
 // +genclient:noStatus
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +resource:path=jinghzhu
-
-// Jinghzhu is the CRD. Use this command to generate deepcopy for it:
-// ./k8s.io/code-generator/generate-groups.sh all github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu/v1/apis github.com/jinghzhu/KubernetesCRD/pkg/crd "jinghzhu:v1"
-// For more details of code-generator, please visit https://github.com/kubernetes/code-generator
+// +k8s:deepcopy-gen=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Jinghzhu struct {
 	metav1.TypeMeta `json:",inline"`
@@ -38,19 +22,20 @@ type Jinghzhu struct {
 }
 
 // JinghzhuSpec is a desired state description of Jinghzhu.
+// +k8s:deepcopy-gen=true
 type JinghzhuSpec struct {
 	Foo string `json:"foo"`
 	Bar bool   `json:"bar"`
 }
 
 // JinghzhuStatus describes the lifecycle status of Jinghzhu.
+// +k8s:deepcopy-gen=true
 type JinghzhuStatus struct {
 	State   string `json:"state"`
 	Message string `json:"message"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +resource:path=jinghzhu
 
 // JinghzhuList is the list of Jinghzhus.
 type JinghzhuList struct {
