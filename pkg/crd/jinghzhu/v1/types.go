@@ -7,15 +7,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// +genclient
-// +genclient:noStatus
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +resource:path=jinghzhu
-
 // Jinghzhu is the CRD. Use this command to generate deepcopy for it:
 // ./k8s.io/code-generator/generate-groups.sh all github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu/v1/apis github.com/jinghzhu/KubernetesCRD/pkg/crd "jinghzhu:v1"
 // For more details of code-generator, please visit https://github.com/kubernetes/code-generator
+// +genclient
+// +genclient:noStatus
+// +k8s:deepcopy-gen=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +resource:path=jinghzhu
 type Jinghzhu struct {
 	metav1.TypeMeta `json:",inline"`
 	// Standard object's metadata.
@@ -27,6 +26,7 @@ type Jinghzhu struct {
 }
 
 // JinghzhuSpec is a desired state description of Jinghzhu.
+// +k8s:deepcopy-gen=true
 type JinghzhuSpec struct {
 	// Desired is the desired Pod number.
 	Desired int `json:"desired"`
@@ -42,10 +42,10 @@ type JinghzhuStatus struct {
 	Message string `json:"message"`
 }
 
+// JinghzhuList is the list of Jinghzhus.
+// +k8s:deepcopy-gen=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +resource:path=jinghzhu
-
-// JinghzhuList is the list of Jinghzhus.
 type JinghzhuList struct {
 	metav1.TypeMeta `json:",inline"`
 	// Standard list metadata.
