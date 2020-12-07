@@ -18,11 +18,10 @@ import (
 
 // CreateCustomResourceDefinition creates the CRD and add it into Kubernetes. If there is error,
 // it will do some clean up.
-func CreateCustomResourceDefinition(namespace string, clientSet apiextensionsclientset.Interface) (*apiextensionsv1beta1.CustomResourceDefinition, error) {
+func CreateCustomResourceDefinition(clientSet apiextensionsclientset.Interface) (*apiextensionsv1beta1.CustomResourceDefinition, error) {
 	crd := &apiextensionsv1beta1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      CRDName,
-			Namespace: namespace,
+			Name: CRDName,
 		},
 		Spec: apiextensionsv1beta1.CustomResourceDefinitionSpec{
 			Group:   crdjinghzhu.GroupName,

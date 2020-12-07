@@ -173,7 +173,7 @@ Here, I'll go through the main code (`main.go`) to show the main logic of everyt
 
     ```go
     // Init a CRD kind.
-	if _, err = crdjinghzhuv1.CreateCustomResourceDefinition("crd-ns", apiextensionsClientSet); err != nil {
+	if _, err = crdjinghzhuv1.CreateCustomResourceDefinition(apiextensionsClientSet); err != nil {
 		panic(err)
 	}
     ```

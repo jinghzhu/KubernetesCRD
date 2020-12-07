@@ -31,7 +31,7 @@ func main() {
 	}
 
 	// Init a CRD kind.
-	if _, err = crdjinghzhuv1.CreateCustomResourceDefinition(cfg.GetCRDNamespace(), apiextensionsClientSet); err != nil {
+	if _, err = crdjinghzhuv1.CreateCustomResourceDefinition(apiextensionsClientSet); err != nil {
 		panic(err)
 	}
 
