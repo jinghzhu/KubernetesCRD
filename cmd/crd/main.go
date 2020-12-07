@@ -42,10 +42,10 @@ func main() {
 	}
 
 	// Create an instance of CRD.
-	instanceName := "jinghzhu-example1"
+	instanceName := "jinghzhu-example-"
 	exampleInstance := &crdjinghzhuv1.Jinghzhu{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: instanceName,
+			GenerateName: instanceName,
 		},
 		Spec: crdjinghzhuv1.JinghzhuSpec{
 			Desired: 1,
@@ -58,20 +58,20 @@ func main() {
 		},
 	}
 	result, err := crdClient.CreateDefault(exampleInstance)
-	if err == nil {
-		fmt.Printf("CREATED: %#v\n", result)
-	} else if apierrors.IsAlreadyExists(err) {
+	if err != nil && apierrors.IsAlreadyExists(err) {
 		fmt.Printf("ALREADY EXISTS: %#v\n", result)
-	} else {
+	} else if err != nil {
 		panic(err)
 	}
+	crdInstanceName := result.GetName()
+	fmt.Println("CREATED: " + result.String())
 
 	// Wait until the CRD object is handled by controller and its status is changed to Processed.
-	err = crdClient.WaitForInstanceProcessed(instanceName)
+	err = crdClient.WaitForInstanceProcessed(crdInstanceName)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Processed")
+	fmt.Println("Processed " + crdInstanceName)
 
 	// Get the list of CRs.
 	exampleList, err := crdClient.List(metav1.ListOptions{})
