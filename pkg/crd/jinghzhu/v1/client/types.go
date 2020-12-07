@@ -34,8 +34,8 @@ type Client struct {
 
 // PatchJSONTypeOps describes the operations for PATCH defined in RFC6902. https://tools.ietf.org/html/rfc6902
 // The supported operations are: add, remove, replace, move, copy and test.
-// When we news a Jinghzhu instance, we'll set defatule value for all fields. So, when you want to patch a Jinghzhu,
-// DO NOT use remove. Please use replace, even if you want to keey that field "empty".
+// When we news a Jinghzhu instance, we'll set default value for all fields. So, when you want to patch a Jinghzhu,
+// DO NOT use remove. Please use replace, even if you want to keep that field "empty".
 // Example:
 // 	things := make([]IntThingSpec, 2)
 // 	things[0].Op = "replace"

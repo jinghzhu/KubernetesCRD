@@ -71,7 +71,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Porcessed")
+	fmt.Println("Processed")
 
 	// Get the list of CRs.
 	exampleList, err := crdClient.List(metav1.ListOptions{})
