@@ -13,9 +13,9 @@ func initConfig() {
 		config.crdNamespace = DefaultCRDNamespace
 	}
 
-	config.kubeconfig = os.Getenv("KUBECONFIG")
-	if config.kubeconfig == "" {
-		config.kubeconfig = DefaultKubeConfigPath
+	config.kubeconfigPath = os.Getenv("CRD_KUBECONFIG")
+	if config.kubeconfigPath == "" {
+		config.kubeconfigPath = DefaultKubeconfigPath
 	}
 }
 

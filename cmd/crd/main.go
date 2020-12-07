@@ -17,7 +17,7 @@ import (
 func main() {
 	ctx := types.GetCtx()
 	cfg := config.GetConfig()
-	kubeconfigPath := cfg.GetKubeconfig()
+	kubeconfigPath := cfg.GetKubeconfigPath()
 
 	// Use kubeconfig to create client config.
 	clientConfig, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)

@@ -102,7 +102,7 @@ func NewClient(ctx context.Context, kubeconfigPath, namespace string) (*Client, 
 func GetDefaultClient() *Client {
 	onceDefaultJinghzhuV1Client.Do(func() {
 		cfg := config.GetConfig()
-		clientset, err := CreateJinghzhuClientset(cfg.GetKubeconfig())
+		clientset, err := CreateJinghzhuClientset(cfg.GetKubeconfigPath())
 		if err != nil {
 			panic("Fail to init default CRD API client for Jinghuazhu v1: " + err.Error())
 		}
