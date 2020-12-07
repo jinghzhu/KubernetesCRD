@@ -28,8 +28,10 @@ func CreateCustomResourceDefinition(clientSet apiextensionsclientset.Interface) 
 			Version: SchemeGroupVersion.Version,
 			Scope:   apiextensionsv1beta1.NamespaceScoped,
 			Names: apiextensionsv1beta1.CustomResourceDefinitionNames{
-				Plural: Plural,
-				Kind:   reflect.TypeOf(Jinghzhu{}).Name(),
+				Plural:     Plural,
+				Singular:   Singular,
+				Kind:       reflect.TypeOf(Jinghzhu{}).Name(),
+				ShortNames: []string{ShortName},
 			},
 		},
 	}
