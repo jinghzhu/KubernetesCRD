@@ -1,6 +1,9 @@
 package v1
 
 import (
+	"fmt"
+	"strings"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -49,4 +52,17 @@ type JinghzhuList struct {
 	metav1.ListMeta `json:"metadata"`
 	// List of Jinghzhus.
 	Items []Jinghzhu `json:"items"`
+}
+
+func (j *Jinghzhu) String() string {
+	return fmt.Sprintf(
+		"\tName = %s\n\tResource Version = %s\n\tDesired = %d\n\tCurrent = %d\n\tPodList = %s\n\tState = %s\n\tMessage = %s\n\t",
+		j.GetName(),
+		j.GetResourceVersion(),
+		j.Spec.Desired,
+		j.Spec.Current,
+		strings.Join(j.Spec.PodList, ", "),
+		j.Status.State,
+		j.Status.Message,
+	)
 }
