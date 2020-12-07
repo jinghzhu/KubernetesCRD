@@ -61,7 +61,7 @@ func main() {
 	if err == nil {
 		fmt.Printf("CREATED: %#v\n", result)
 	} else if apierrors.IsAlreadyExists(err) {
-		fmt.Printf("ALREADY EXISTS: %#\n", result)
+		fmt.Printf("ALREADY EXISTS: %#v\n", result)
 	} else {
 		panic(err)
 	}
