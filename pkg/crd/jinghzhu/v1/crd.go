@@ -33,6 +33,27 @@ func CreateCustomResourceDefinition(clientSet apiextensionsclientset.Interface) 
 				Kind:       reflect.TypeOf(Jinghzhu{}).Name(),
 				ShortNames: []string{ShortName},
 			},
+			Validation: &apiextensionsv1beta1.CustomResourceValidation{
+				OpenAPIV3Schema: &apiextensionsv1beta1.JSONSchemaProps{
+					Type: "object",
+					Properties: map[string]apiextensionsv1beta1.JSONSchemaProps{
+						"spec": {
+							Type: "object",
+							Properties: map[string]apiextensionsv1beta1.JSONSchemaProps{
+								"desired": {Type: "integer", Format: "int"},
+								"current": {Type: "integer", Format: "int"},
+								"podList": {
+									Type: "array",
+									Items: &apiextensionsv1beta1.JSONSchemaPropsOrArray{
+										Schema: &apiextensionsv1beta1.JSONSchemaProps{Type: "string"},
+									},
+								},
+							},
+							Required: []string{"desired"},
+						},
+					},
+				},
+			},
 		},
 	}
 	ctx := types.GetCtx()
