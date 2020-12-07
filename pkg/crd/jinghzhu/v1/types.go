@@ -1,21 +1,10 @@
 package v1
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
+	"fmt"
+	"strings"
 
-const (
-	// StatePending means CRD instance is created; Pod info has been updated into CRD instance;
-	// Pod has been accepted by the system, but one or more of the containers has not been started.
-	StatePending string = "Pending"
-	// StateRunning means Pod has been bound to a node and all of the containers have been started.
-	StateRunning string = "Running"
-	// StateSucceeded means that all containers in the Pod have voluntarily terminated with a container
-	// exit code of 0, and the system is not going to restart any of these containers.
-	StateSucceeded string = "Succeeded"
-	// StateFailed means that all containers in the Pod have terminated, and at least one container has
-	// terminated in a failure (exited with a non-zero exit code or was stopped by the system).
-	StateFailed string = "Failed"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // +genclient
@@ -39,8 +28,12 @@ type Jinghzhu struct {
 
 // JinghzhuSpec is a desired state description of Jinghzhu.
 type JinghzhuSpec struct {
-	Foo string `json:"foo"`
-	Bar bool   `json:"bar"`
+	// Desired is the desired Pod number.
+	Desired int `json:"desired"`
+	// Current is the number of Pod currently running.
+	Current int `json:"current"`
+	// PodList is the name list of current Pods.
+	PodList []string `json:"podList"`
 }
 
 // JinghzhuStatus describes the lifecycle status of Jinghzhu.
@@ -59,4 +52,17 @@ type JinghzhuList struct {
 	metav1.ListMeta `json:"metadata"`
 	// List of Jinghzhus.
 	Items []Jinghzhu `json:"items"`
+}
+
+func (j *Jinghzhu) String() string {
+	return fmt.Sprintf(
+		"\tName = %s\n\tResource Version = %s\n\tDesired = %d\n\tCurrent = %d\n\tPodList = %s\n\tState = %s\n\tMessage = %s\n\t",
+		j.GetName(),
+		j.GetResourceVersion(),
+		j.Spec.Desired,
+		j.Spec.Current,
+		strings.Join(j.Spec.PodList, ", "),
+		j.Status.State,
+		j.Status.Message,
+	)
 }

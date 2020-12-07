@@ -5,11 +5,13 @@ import (
 	"reflect"
 	"time"
 
+	crdjinghzhu "github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apiextensionsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/jinghzhu/KubernetesCRD/pkg/types"
 	"k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
@@ -23,7 +25,7 @@ func CreateCustomResourceDefinition(namespace string, clientSet apiextensionscli
 			Namespace: namespace,
 		},
 		Spec: apiextensionsv1beta1.CustomResourceDefinitionSpec{
-			Group:   GroupName,
+			Group:   crdjinghzhu.GroupName,
 			Version: SchemeGroupVersion.Version,
 			Scope:   apiextensionsv1beta1.NamespaceScoped,
 			Names: apiextensionsv1beta1.CustomResourceDefinitionNames{
@@ -32,7 +34,8 @@ func CreateCustomResourceDefinition(namespace string, clientSet apiextensionscli
 			},
 		},
 	}
-	_, err := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd)
+	ctx := types.GetCtx()
+	_, err := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Create(ctx, crd, metav1.CreateOptions{})
 	if err == nil {
 		fmt.Println("CRD Jinghzhu is created")
 	} else if apierrors.IsAlreadyExists(err) {
@@ -45,7 +48,7 @@ func CreateCustomResourceDefinition(namespace string, clientSet apiextensionscli
 
 	// Wait for CRD creation.
 	err = wait.Poll(5*time.Second, 60*time.Second, func() (bool, error) {
-		crd, err = clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Get(CRDName, metav1.GetOptions{})
+		crd, err = clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Get(ctx, CRDName, metav1.GetOptions{})
 		if err != nil {
 			fmt.Printf("Fail to wait for CRD Jinghzhu creation: %+v\n", err)
 
@@ -70,7 +73,7 @@ func CreateCustomResourceDefinition(namespace string, clientSet apiextensionscli
 	// If there is an error, delete the object to keep it clean.
 	if err != nil {
 		fmt.Println("Try to cleanup")
-		deleteErr := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(CRDName, nil)
+		deleteErr := clientSet.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ctx, CRDName, metav1.DeleteOptions{})
 		if deleteErr != nil {
 			fmt.Printf("Fail to delete CRD Jinghzhu: %+v\n", deleteErr)
 

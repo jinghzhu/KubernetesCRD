@@ -1,12 +1,14 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
 	jinghzhuv1 "github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu/v1"
 	jinghzhuv1apisclientset "github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu/v1/apis/clientset/versioned"
 
+	"github.com/jinghzhu/KubernetesCRD/pkg/config"
 	"github.com/jinghzhu/KubernetesCRD/pkg/types"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -27,12 +29,13 @@ type Client struct {
 	clientset *jinghzhuv1apisclientset.Clientset
 	namespace string
 	plural    string
+	ctx       context.Context
 }
 
 // PatchJSONTypeOps describes the operations for PATCH defined in RFC6902. https://tools.ietf.org/html/rfc6902
 // The supported operations are: add, remove, replace, move, copy and test.
-// When we news a Jinghzhu instance, we'll set defatule value for all fields. So, when you want to patch a Jinghzhu,
-// DO NOT use remove. Please use replace, even if you want to keey that field "empty".
+// When we news a Jinghzhu instance, we'll set default value for all fields. So, when you want to patch a Jinghzhu,
+// DO NOT use remove. Please use replace, even if you want to keep that field "empty".
 // Example:
 // 	things := make([]IntThingSpec, 2)
 // 	things[0].Op = "replace"
@@ -57,6 +60,11 @@ func (c *Client) GetPlural() string {
 	return c.plural
 }
 
+// GetContext returns the context of client.
+func (c *Client) GetContext() context.Context {
+	return c.ctx
+}
+
 // CreateJinghzhuClientset returns the clientset for CRD Jinghzhu v1 in singleton way.
 func CreateJinghzhuClientset(kubeconfigPath string) (*jinghzhuv1apisclientset.Clientset, error) {
 	restConfig, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
@@ -72,7 +80,7 @@ func CreateJinghzhuClientset(kubeconfigPath string) (*jinghzhuv1apisclientset.Cl
 }
 
 // NewClient accepts kubeconfig path and namespace. Return the API client interface for CRD Jinghzhu v1.
-func NewClient(kubeconfigPath, namespace string) (*Client, error) {
+func NewClient(ctx context.Context, kubeconfigPath, namespace string) (*Client, error) {
 	clientset, err := CreateJinghzhuClientset(kubeconfigPath)
 	if err != nil {
 		fmt.Printf("Fail to init CRD API clientset for Jinghuazhu v1: %+v\n", err.Error())
@@ -83,6 +91,7 @@ func NewClient(kubeconfigPath, namespace string) (*Client, error) {
 		clientset: clientset,
 		namespace: namespace,
 		plural:    jinghzhuv1.Plural,
+		ctx:       ctx,
 	}
 
 	return c, nil
@@ -92,14 +101,16 @@ func NewClient(kubeconfigPath, namespace string) (*Client, error) {
 // is available at default path and the target CRD namespace is the default namespace.
 func GetDefaultClient() *Client {
 	onceDefaultJinghzhuV1Client.Do(func() {
-		clientset, err := CreateJinghzhuClientset(types.DefaultKubeConfigPath)
+		cfg := config.GetConfig()
+		clientset, err := CreateJinghzhuClientset(cfg.GetKubeconfigPath())
 		if err != nil {
 			panic("Fail to init default CRD API client for Jinghuazhu v1: " + err.Error())
 		}
 		defaultClient = &Client{
 			clientset: clientset,
-			namespace: types.DefaultCRDNamespace,
+			namespace: cfg.GetCRDNamespace(),
 			plural:    jinghzhuv1.Plural,
+			ctx:       types.GetCtx(),
 		}
 	})
 

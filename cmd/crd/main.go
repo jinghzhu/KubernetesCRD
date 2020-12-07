@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"os"
 
+	"github.com/jinghzhu/KubernetesCRD/pkg/config"
 	"github.com/jinghzhu/KubernetesCRD/pkg/types"
 	"k8s.io/client-go/tools/clientcmd"
 
@@ -15,10 +15,12 @@ import (
 )
 
 func main() {
-	kubeConfigPath := os.Getenv("KUBECONFIG")
+	ctx := types.GetCtx()
+	cfg := config.GetConfig()
+	kubeconfigPath := cfg.GetKubeconfigPath()
 
 	// Use kubeconfig to create client config.
-	clientConfig, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
+	clientConfig, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 	if err != nil {
 		panic(err)
 	}
@@ -29,12 +31,12 @@ func main() {
 	}
 
 	// Init a CRD kind.
-	if _, err = crdjinghzhuv1.CreateCustomResourceDefinition("crd-ns", apiextensionsClientSet); err != nil {
+	if _, err = crdjinghzhuv1.CreateCustomResourceDefinition(cfg.GetCRDNamespace(), apiextensionsClientSet); err != nil {
 		panic(err)
 	}
 
 	// Create a CRD client interface for Jinghzhu v1.
-	crdClient, err := jinghzhuv1client.NewClient(kubeConfigPath, types.DefaultCRDNamespace)
+	crdClient, err := jinghzhuv1client.NewClient(ctx, kubeconfigPath, cfg.GetCRDNamespace())
 	if err != nil {
 		panic(err)
 	}
@@ -46,19 +48,20 @@ func main() {
 			Name: instanceName,
 		},
 		Spec: crdjinghzhuv1.JinghzhuSpec{
-			Foo: "hello",
-			Bar: true,
+			Desired: 1,
+			Current: 0,
+			PodList: make([]string, 0),
 		},
 		Status: crdjinghzhuv1.JinghzhuStatus{
-			State:   crdjinghzhuv1.StatePending,
+			State:   types.StatePending,
 			Message: "Created but not processed yet",
 		},
 	}
-	result, err := crdClient.Create(exampleInstance)
+	result, err := crdClient.CreateDefault(exampleInstance)
 	if err == nil {
 		fmt.Printf("CREATED: %#v\n", result)
 	} else if apierrors.IsAlreadyExists(err) {
-		fmt.Printf("ALREADY EXISTS: %#\n", result)
+		fmt.Printf("ALREADY EXISTS: %#v\n", result)
 	} else {
 		panic(err)
 	}
@@ -68,7 +71,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Porcessed")
+	fmt.Println("Processed")
 
 	// Get the list of CRs.
 	exampleList, err := crdClient.List(metav1.ListOptions{})
