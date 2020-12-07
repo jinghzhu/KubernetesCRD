@@ -15,5 +15,5 @@ package jinghzhu
 
 // GroupName is the group name used in this package
 const (
-	GroupName = "jinghzhu.com"
+	GroupName = "jinghzhu.io"
 )
