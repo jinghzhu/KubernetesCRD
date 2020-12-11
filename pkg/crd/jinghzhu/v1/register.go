@@ -9,15 +9,18 @@ import (
 )
 
 const (
+	// Kind is normally the CamelCased singular type. The resource manifest uses this.
 	Kind string = "Jinghzhu"
 	// GroupVersion is the version.
 	GroupVersion string = "v1"
-	// Plural is the Plural for Jinghzhu.
+	// Plural is the plural name used in /apis/<group>/<version>/<plural>
 	Plural string = "jinghzhus"
-	// Singular is the singular for Jinghzhu.
+	// Singular is used as an alias on kubectl for display.
 	Singular string = "jinghzhu"
 	// CRDName is the CRD name for Jinghzhu.
 	CRDName string = Plural + "." + crdjinghzhu.GroupName
+	// ShortName is the short alias for the CRD.
+	ShortName string = "jh"
 )
 
 var (

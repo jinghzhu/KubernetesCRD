@@ -18,19 +18,41 @@ import (
 
 // CreateCustomResourceDefinition creates the CRD and add it into Kubernetes. If there is error,
 // it will do some clean up.
-func CreateCustomResourceDefinition(namespace string, clientSet apiextensionsclientset.Interface) (*apiextensionsv1beta1.CustomResourceDefinition, error) {
+func CreateCustomResourceDefinition(clientSet apiextensionsclientset.Interface) (*apiextensionsv1beta1.CustomResourceDefinition, error) {
 	crd := &apiextensionsv1beta1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      CRDName,
-			Namespace: namespace,
+			Name: CRDName,
 		},
 		Spec: apiextensionsv1beta1.CustomResourceDefinitionSpec{
 			Group:   crdjinghzhu.GroupName,
 			Version: SchemeGroupVersion.Version,
 			Scope:   apiextensionsv1beta1.NamespaceScoped,
 			Names: apiextensionsv1beta1.CustomResourceDefinitionNames{
-				Plural: Plural,
-				Kind:   reflect.TypeOf(Jinghzhu{}).Name(),
+				Plural:     Plural,
+				Singular:   Singular,
+				Kind:       reflect.TypeOf(Jinghzhu{}).Name(),
+				ShortNames: []string{ShortName},
+			},
+			Validation: &apiextensionsv1beta1.CustomResourceValidation{
+				OpenAPIV3Schema: &apiextensionsv1beta1.JSONSchemaProps{
+					Type: "object",
+					Properties: map[string]apiextensionsv1beta1.JSONSchemaProps{
+						"spec": {
+							Type: "object",
+							Properties: map[string]apiextensionsv1beta1.JSONSchemaProps{
+								"desired": {Type: "integer", Format: "int"},
+								"current": {Type: "integer", Format: "int"},
+								"podList": {
+									Type: "array",
+									Items: &apiextensionsv1beta1.JSONSchemaPropsOrArray{
+										Schema: &apiextensionsv1beta1.JSONSchemaProps{Type: "string"},
+									},
+								},
+							},
+							Required: []string{"desired"},
+						},
+					},
+				},
 			},
 		},
 	}
