@@ -6,7 +6,7 @@ This repository is an example of how to create/list/update/delete Kubernetes [Cu
 
 # Environment
 1. Go: >= v1.9.0
-2. Kubernetes: > v1.9.0
+2. Kubernetes: >= v1.9.0
 3. Assume you have already a Kubernetes cluster and its kubeconfig file can be reached via system variable `KUBECONFIG`.
 
 
@@ -45,6 +45,7 @@ We need firstly create the struct of CRD. The CRD object structure has these com
 // pkg/crd/jinghzhu/v1/types.go
 
 // Jinghzhu is the CRD. Use this command to generate deepcopy for it:
+// ./k8s.io/code-generator/generate-groups.sh all github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu/v1/apis github.com/jinghzhu/KubernetesCRD/pkg/crd "jinghzhu:v1"
 type Jinghzhu struct {
 	metav1.TypeMeta `json:",inline"`
 	// Standard object's metadata.
@@ -112,7 +113,7 @@ It may also need to create file [boilerplate.go.txt](https://github.com/kubernet
 // +groupName=jinghzhu.com
 ```
 
-For more details about annotations for code-generator, please read Kubernets documents or Google it.
+For more details about annotations for code-generator, please read Kubernetes documents or Google it.
 
 > If you use dep to manage dependency packages, you may not directly run the script, generate-groups. It will throw the error that it can't find necessary vendor packages.
 > 
